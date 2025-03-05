@@ -8,16 +8,18 @@ This repository contains source code for our paper. The code includes data proce
 ## Installation
 
 Clone the repo:
+
 ```bash
 git clone https://github.com/kisnisker/m1p-template.git
 cd code
 ```
 
 Install dependencies:
+
 ```bash
 pip install -r requirements.txt
 ```
 
 ## Usage
 
-TODO
+TADAAAA!!!
