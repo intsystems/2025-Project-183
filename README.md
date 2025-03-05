@@ -9,15 +9,15 @@
 <table>
     <tr>
         <td align="left"> <b> Author </b> </td>
-        <td> Name Surname </td>
+        <td> Artem Nikitin </td>
     </tr>
     <tr>
         <td align="left"> <b> Consultant </b> </td>
-        <td> Name Surname, PhD/DSc </td>
+        <td> Andrey Grabovoy </td>
     </tr>
     <tr>
         <td align="left"> <b> Advisor </b> </td>
-        <td> Name Surname, PhD/DSc </td>
+        <td> Nikita Kiselev </td>
     </tr>
 </table>
 
@@ -30,15 +30,32 @@
 
 ## Abstract
 
-TODO
+Understanding how the loss landscape of neural networks evolves as the training set size increases is crucial for
+optimizing performance and ensuring reliable generalization. While it is well known that larger datasets can alter
+the shape of this high-dimensional landscape, the exact point at which additional data no longer brings substantial
+changes remains underexplored.
+
+In this paper, we examine neural network models and show that their loss landscapes begin to stabilize once the
+training set grows beyond a certain threshold, revealing a connection between dataset size and the geometry of the
+loss surface. To elucidate this phenomenon, we propose a method that projects the full parameter space onto a
+low-dimensional subspace derived from top eigenvectors (e.g., from the Hessian). Focusing on these principal directions
+preserves critical curvature information while providing a more interpretable view of how the loss surface in the
+vicinity of local minima behaves as more data become available. We further leverage targeted sampling strategies,
+applying Monte-Carlo estimation to capture the structure of this reduced loss landscape more precisely.
+
+We validate our insights through comprehensive experiments on image classification tasks, demonstrating that this
+low-dimensional analysis can reveal when the landscape effectively settles, and thus helps determine a minimum viable
+dataset size. Our findings shed light on the relationship between dataset scale and optimization geometry, and suggest
+practical strategies for balancing computational costs with the benefits of additional training data.
 
 ## Citation
 
 If you find our work helpful, please cite us.
+
 ```BibTeX
-@article{citekey,
-    title={Title},
-    author={Name Surname, Name Surname (consultant), Name Surname (advisor)},
+@article{intsystems183,
+    title={Neural Networks Loss Landscape Convergence in Different Low-Dimensional Spaces},
+    author={Tem Nikitin, Nikita Kiselev, Vladislav Meshkov, Andrey Grabovoy},
     year={2025}
 }
 ```
