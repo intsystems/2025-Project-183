@@ -134,11 +134,11 @@ Neural networks have become irreplaceable in various aspects of life and have a 
 larger, we get higher accuracy and breakthrough results. However some problems connected with computation resources have
 appeared. Sometimes models have so many parameters so we need time we cannot provide for their training. Some attempts to
 explore and compare optimization methods have already been made \cite{soydaner2020comparison}. The core problem of all these
-solutions hides in their locality, as the size of the neural network and training dataset remains unchanged. Our research goal
-is to explore when adding more data no longer brings significant improvements in network performance and to explain
+solutions hides in their locality, as the size of the neural network and training dataset remains unchanged. In this paper we
+explore when adding more data no longer brings significant improvements in network performance and to explain
 obtained results in terms of the curvature and shape of the neural network’s loss landscape.
 
-The object of research centers on the loss landscape of neural networks. Specifically, how it changes while adding new samples
+Our research on the loss landscape of neural networks. Specifically, how it changes while adding new samples
 to the training dataset. There remains a problem: processing of large datasets requires a lot of time.
 We need to determine when increasing dataset size stops reshaping this loss landscape for general neural networks.
 But the question of a minimum viable dataset size --- a threshold beyond which further data bring insignificant changes ---
@@ -212,34 +212,35 @@ at visualizing loss surfaces \cite{li2018visualizing}.
 In this section, we introduce the general notation used in the rest of the paper and the basic assumptions.
 
 We consider a $K$-label classification problem.
-So, let's consider $p(y|x)$ a conditional probability, which maps unobserved variable $x \in \mathcal{X}$ to the corresponding
-output $y \in \mathcal{Y}$. We consider $\mathcal{Y}$ is a subspace (or same space) as $\mathbb{R}^K$. Let $f_{\omega}(\cdot)$
-be a neural network with a list of parameters $\omega$. Let $\Omega$ be a space of parameters ($\omega \in \Omega$).
+So, let's consider $p(y|\bx)$ a conditional probability, which maps unobserved variable $\bx \in \bX$ to the corresponding
+output $y \in \by$. We consider $\by$ is a subspace (or same space) as $\mathbb{R}^K$. Let $f_{\bw}(\cdot)$
+be a neural network with a list of parameters $\bw$. Let $\Omega$ be a space of parameters ($\bw \in \Omega$).
 
 Let
-$$\mathcal{D} = \left\{ (x_i, y_i) \, | \, i = 1, \dots, m \right\}$$
+$$\mathcal{D} = \left\{ (\bx_i, y_i) \, | \, i = 1, \dots, m \right\}$$
 be a given dataset of size $m$ consists of i.i.d.
-samples. Let $l(\cdot, \cdot)$ be a given loss function (e.g. cross-entrophy) where first argument refers to neural network's
-result and the second argument refers to the true answer. To simplify, define: $$l_i(\omega) := l(f_{\omega}(x_i), y_i).$$
+samples. Let $\ell(\cdot, \cdot)$ be a given loss function (e.g. cross-entrophy) where first argument refers to neural network's
+result and the second argument refers to the true answer. To simplify, define:
+$$\ell_i(\bw) := \ell(f_{\bw}(\bx_i), y_i).$$
 
 \begin{definition}
   The empirical loss function for the first $k$ elements is:
-  $$\mathcal{L}_k(\omega) = \frac1k \sum\limits_1^k l_i(\omega), \,\, \mathcal{L}(\omega) := \mathcal{L}_m(\omega).$$
+  $$\mathcal{L}_k(\bw) = \frac1k \sum\limits_1^k \ell_i(\bw), \,\, \mathcal{L}(\bw) := \mathcal{L}_m(\bw).$$
 \end{definition}
 
 Thus, the difference between losses for neighbouring samplem sizes is:
-$$\mathcal{L}_{k}(\omega) - \mathcal{L}_{k-1}(\omega) = \frac{l_{k}(\omega) - \mathcal{L}_{k-1}(\omega)}{k}.$$
+$$\mathcal{L}_{k}(\bw) - \mathcal{L}_{k-1}(\bw) = \frac{\ell_{k}(\bw) - \mathcal{L}_{k-1}(\bw)}{k}.$$
 
 \begin{definition}
-  Let the Hessian of $\mathcal{L}_k(\omega)$ be:
-  $$\mathcal{H}_k(\omega) = \nabla^2_{\omega}\mathcal{L}_k(\omega) = \frac1k \sum\limits_1^k \nabla^2_{\omega} l_i(\omega).$$
+  Let the Hessian of $\mathcal{L}_k(\bw)$ be:
+  $$\bH_k(\bw) = \nabla^2_{\bw}\mathcal{L}_k(\bw) = \frac1k \sum\limits_1^k \nabla^2_{\bw} \ell_i(\bw).$$
 \end{definition}
 
 \begin{definition}
   To calculate the overall loss landscape changing, one has to integrate the absolute difference for the entire parameter space.
   We define \textbf{weighted difference} as:
-  $$\Delta_{k} = \int \left( \mathcal{L}_{k}(\omega) - \mathcal{L}_{k-1}(\omega) \right)^2 p(\omega) d\omega,$$
-  where $p(\omega)$ describes the priority of the particular parameter points so we can make $p(\omega)$ have higher values
+  $$\Delta_{k} = \int \left( \mathcal{L}_{k}(\bw) - \mathcal{L}_{k-1}(\bw) \right)^2 p(\bw) dw,$$
+  where $p(\bw)$ describes the priority of the particular parameter points so we can make $p(\bw)$ have higher values
   next to the local minima.
 \end{definition}
 
@@ -249,7 +250,7 @@ We interested in convergence of this value and properties of loss function when 
 
 \begin{definition}
   Let $\Delta$ be a positive hyperparameter that indicates the stop-difference for $\Delta_k$. If
-  $$\Delta_{k^*} < \Delta \wedge \left( \forall k < k^*: \, \Delta_k \geq \Delta \right),$$
+  $$k^* = \inf\limits_k\{\Delta_k < \Delta\}$$
   we can say that $k^*$ samples in the dataset are enough to describe the distribution of data from the general population.
   We call $k^*$ as \textbf{sufficient}.
 \end{definition}
@@ -257,28 +258,29 @@ We interested in convergence of this value and properties of loss function when 
 \subsection{Assumptions}
 
 \begin{assumption}
-  Let $\omega^*$ be the local minimum of both $\mathcal{L}_{k-1}(\omega)$ and $\mathcal{L}_{k}(\omega)$.
-  Thus, $$\nabla \mathcal{L}_{k-1}(\omega^*) = \nabla \mathcal{L}_{k}(\omega^*) = 0.$$
+  Let $\bw^*$ be the local minimum of both $\mathcal{L}_{k-1}(\bw)$ and $\mathcal{L}_{k}(\bw)$.
+  Thus, $$\nabla \mathcal{L}_{k-1}(\bw^*) = \nabla \mathcal{L}_{k}(\bw^*) = 0.$$
 \end{assumption}
 
 This assumption allows us to explore the behavior and the geometry of the loss function landscape at only one point.
 
-Furthermore, using second-order Taylor's approximation for $\mathcal{L}_{k}(\omega)$ at $\omega^*$ we get:
-$$\mathcal{L}_{k}(\omega) \approx \mathcal{L}_{k}(\omega^*) + \frac12 (\omega - \omega^*)^T \mathcal{H}_k(\omega^*)
-  (\omega - \omega^*)$$
+Furthermore, using second-order Taylor's approximation for $\mathcal{L}_{k}(\bw)$ at $\bw^*$ we get:
+$$\mathcal{L}_{k}(\bw) \approx \mathcal{L}_{k}(\bw^*) + \frac12 (\bw - \bw^*)^{\T} \bH_k(\bw^*)
+  (\bw - \bw^*)$$
 
 \begin{assumption}
-  We can assume parameters w to be random, which will lead to quite natural condition: p(w) can be even a prior
-  distribution of w, so: $$\Delta_{k} = \mathbb{E}_{p(\omega)} \left( \mathcal{L}_{k}(\omega) - \mathcal{L}_{k-1}(\omega)
-    \right)^2 = \mathbb{D} \left( \mathcal{L}_{k}(\omega) - \mathcal{L}_{k-1}(\omega) \right) + \left( \mathbb{E} \left(
-      \mathcal{L}_{k}(\omega) - \mathcal{L}_{k-1}(\omega) \right) \right)^2$$
+  We can assume parameters $\bw$ to be random, which will lead to quite natural condition: $p(\bw)$ can be even a prior
+  distribution of $\bw$, so:
+  $$\Delta_{k} = \mathbb{E}_{p(\bw)} \left( \mathcal{L}_{k}(\bw) - \mathcal{L}_{k-1}(\bw)
+    \right)^2 = \mathbb{D} \left( \mathcal{L}_{k}(\bw) - \mathcal{L}_{k-1}(\bw) \right) + \left( \mathbb{E} \left(
+      \mathcal{L}_{k}(\bw) - \mathcal{L}_{k-1}(\bw) \right) \right)^2$$
 \end{assumption}
 
 \section{Method}\label{sec:method}
 
 As the work with the full Hessian is computation complex, let's define a projection of neural network parameters space
-$\Omega$ to a certain subspace $\Theta$. Let $\mathcal{P}$ be a projection matrix from $\Omega$ to $\Theta$. Let $\theta$ be
-a projection: $\theta = \mathcal{P}\omega$.
+$\Omega$ to a certain subspace $\Theta$. Let $\bP$ be a projection matrix from $\Omega$ to $\Theta$. Let $\btheta$ be
+a projection: $\btheta = \bP\bw$.
 
 \section{Experiments}\label{sec:exp}
 
