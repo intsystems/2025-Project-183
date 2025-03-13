@@ -1,0 +1,306 @@
+\documentclass{article}
+\input{new_commands}
+
+% if you need to pass options to natbib, use, e.g.:
+\PassOptionsToPackage{numbers, sort, compress}{natbib}
+% before loading neurips_2024
+
+
+% ready for submission
+%\usepackage{neurips_2024}
+
+
+% to compile a preprint version, e.g., for submission to arXiv, add add the
+% [preprint] option:
+\usepackage[preprint]{neurips_2025}
+
+
+% to compile a camera-ready version, add the [final] option, e.g.:
+%     \usepackage[final]{neurips_2024}
+
+
+% to avoid loading the natbib package, add option nonatbib:
+%    \usepackage[nonatbib]{neurips_2024}
+
+
+\usepackage[utf8]{inputenc} % allow utf-8 input
+\usepackage[T1]{fontenc}    % use 8-bit T1 fonts
+\usepackage{hyperref}       % hyperlinks
+\usepackage{url}            % simple URL typesetting
+\usepackage{booktabs}       % professional-quality tables
+\usepackage{amsfonts}       % blackboard math symbols
+\usepackage{nicefrac}       % compact symbols for 1/2, etc.
+\usepackage{microtype}      % microtypography
+\usepackage{xcolor}         % colors
+
+%%%
+
+\usepackage{subcaption}
+\usepackage{graphicx}
+\usepackage{multirow}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{amsthm}
+\usepackage{mathrsfs}
+\usepackage{xcolor}
+\usepackage{textcomp}
+\usepackage{manyfoot}
+\usepackage{booktabs}
+\usepackage{algorithm}
+\usepackage{algorithmicx}
+\usepackage{algpseudocode}
+\usepackage{listings}
+
+\newtheorem{theorem}{Theorem} % continuous numbers
+%%\newtheorem{theorem}{Theorem}[section] % sectionwise numbers
+%% optional argument [theorem] produces theorem numbering sequence instead of independent numbers for Proposition
+\newtheorem{proposition}[theorem]{Proposition}% 
+\newtheorem{lemma}{Lemma}% 
+%%\newtheorem{proposition}{Proposition} % to get separate numbers for theorem and proposition etc.
+
+\newtheorem{example}{Example}
+\newtheorem{remark}{Remark}
+
+\newtheorem{definition}{Definition}
+\newtheorem{assumption}{Assumption}
+
+%%%
+
+
+\title{Neural Networks Loss Landscape Convergence in Different Low-Dimensional Spaces}
+
+
+% The \author macro works with any number of authors. There are two commands
+% used to separate the names and addresses of multiple authors: \And and \AND.
+%
+% Using \And between authors leaves it to LaTeX to determine where to break the
+% lines. Using \AND forces a line break at that point. So, if LaTeX puts 3 of 4
+% authors names on the first line, and the last on the second line, try using
+% \AND instead of \And before the third author name.
+
+
+\author{
+  Tem Nikitin\\
+  Moscow Institute of Physics and Technology\\
+  Moscow, Russia\\
+  \texttt{nikitin.artem.a@phystech.su}\\
+  \And
+  Nikita Kiselev\\
+  Moscow Institute of Physics and Technology\\
+  Moscow, Russia\\
+  \texttt{kiselev.ns@phystech.su}\\
+  \And
+  Andrey Grabovoy\\
+  Moscow Institute of Physics and Technology\\
+  Moscow, Russia\\
+  \texttt{grabovoy.av@phystech.su}\\
+  \And
+  Vladislav Meshkov\\
+  Moscow Institute of Physics and Technology\\
+  Moscow, Russia\\
+  \texttt{meshkov.ns@phystech.su}\\
+}
+
+
+\begin{document}
+
+
+\maketitle
+
+\begin{abstract}
+  Understanding how the loss landscape of neural networks evolves as the training set size increases is crucial for
+  optimizing performance. It is well known that larger datasets can alter the shape of this high-dimensional landscape.
+  But the exact point at which additional data no longer brings substantial changes remains underexplored.
+
+  In this paper, we examine neural network models and show that their loss landscapes begin to stabilize once the
+  training set grows beyond a certain threshold, revealing a connection between dataset size and the geometry of the
+  loss surface. To understand this phenomenon, we propose a method that projects the full parameter space onto a
+  low-dimensional subspace derived from top eigenvectors of the Hessian. That provides a more interpretable view of how
+  the loss surface in the vicinity of local minima behaves as more data become available. We use different sampling
+  strategies, applying Monte-Carlo estimation to capture the structure of this reduced loss landscape more precisely.
+
+  We validate our insights through experiments on image classification tasks, demonstrating that this low-dimensional
+  analysis can reveal when the landscape effectively settles, and thus helps determine a minimum viable dataset size.
+  Our findings shed light on the relationship between dataset scale and optimization geometry, and suggest
+  practical strategies for balancing computational costs with the benefits of additional training data.
+\end{abstract}
+
+\textbf{Keywords:}
+Neural networks, Loss landscape, Low-dimensional subspace, Hessian eigenvectors, Monte Carlo estimation, Dataset size threshold.
+
+\section{Introduction}\label{sec:intro}
+
+Neural networks have become irreplaceable in various aspects of life and have a lot of applications now
+(e.g. image classification, language models, recommender systems, etc.). However, as datasets and models grow larger and
+larger, we get higher accuracy and breakthrough results. However some problems connected with computation resources have
+appeared. Sometimes models have so many parameters so we need time we cannot provide for their training. Some attempts to
+explore and compare optimization methods have already been made \cite{soydaner2020comparison}. The core problem of all these
+solutions hides in their locality, as the size of the neural network and training dataset remains unchanged. Our research goal
+is to explore when adding more data no longer brings significant improvements in network performance and to explain
+obtained results in terms of the curvature and shape of the neural network’s loss landscape.
+
+The object of research centers on the loss landscape of neural networks. Specifically, how it changes while adding new samples
+to the training dataset. There remains a problem: processing of large datasets requires a lot of time.
+We need to determine when increasing dataset size stops reshaping this loss landscape for general neural networks.
+But the question of a minimum viable dataset size --- a threshold beyond which further data bring insignificant changes ---
+remains underexplored. Moreover, connecting such a threshold to generalization capabilities \cite{wu2017towards} will
+reduce computation requirements as we show that there is an upper bound of "active" dataset samples.
+
+We suggest using the Hessian of the loss function to calculate its close approximation. However, the computation of all
+Hessian requires a bunch of time, so we consider a projection of neural network parameters space to a certain subspace.
+We place the following tasks to the front:
+\begin{enumerate}
+  \item Constructing a Hessian-based projection of the loss landscape which finds main curvature directions
+        (top eigenvectors) in parameter space.
+  \item Using different sampling methods, identifying at which dataset size the shape of the loss function stabilizes.
+  \item We apply visualization methods to characterize the loss landscape next to the local minima.
+  \item Providing applicable theoretical criteria to determine when adding more samples has minimal effect.
+        We refer to The Matrix Cookbook \cite{petersen2012matrix} as a hint for matrix operations.
+\end{enumerate}
+
+The proposed solution is novel as it links Hessian estimation to the idea of a minimal dataset threshold. This enables
+advantages such as more cost-effective dataset collection and a clearer understanding of how dataset size interacts with the
+geometry of the loss function. And applying recent methods for low-rank Hessian estimation
+can speed up and solve the problem of high computation cost of top eigenvalues for very large networks.
+
+We validate our analysis results on well-known image classification tasks like MNIST \cite{deng2012mnist} and Fashion-MNIST
+\cite{xiao2017fashion}. By connecting practical results to theoretical bounds, we offer a method for identifying
+a computation-efficiency method that balances performance with accuracy gains.
+
+\textbf{Contributions.} Our contributions can be summarized as follows:
+\begin{itemize}
+  \item We present a Hessian-based approach that uses a projection into a low-dimensional subspace of top eigenvectors to
+        find the critical sufficient dataset size.
+  \item We demonstrate the validity of our theoretical framework through empirical studies on MNIST and Fashion-MNIST,
+        incrementally increasing dataset size until additional data makes an impact to the loss function curvature.
+  \item We highlight the implications of our findings for practical data collection strategies, showing how the detection of
+        a sufficient dataset size can reduce computation time.
+\end{itemize}
+
+\textbf{Outline.} The rest of the paper is organized as follows...but I don't know how yet.
+
+\section{Related Work}\label{sec:rw}
+
+\textbf{Hessian-based analysis.}
+The landscape of loss functions has been explored from various perspectives in the literature. Methods connected with Hessian
+are central to understanding the convergence process and loss function landscape \cite{kiselev2024unraveling}. Recent works
+observed that the Hessian of some models tends to have a low effective rank, with only a small quantity of eigenvalue
+differences from zero. Empirical explorations from \cite{sagun2018empirical} show that the Hessian rank is often very low in
+the vicinity of local minima, highlighting a significantly smaller “active subspace”.
+Prior work investigating how large eigenvalues emerge during training \cite{ghorbani2019investigation}.
+
+Some results have already been reached for fully connected and convolutional architectures \cite{meshkov2024convnets},
+but they need generalization.
+
+
+\textbf{Loss Landscape Geometry.}
+Other recent researches aimed at how dataset size affects both performance and the geometry of loss function landscapes.
+In the assumption of enough training samples, neural networks often reach smoother and flatter minima with better
+generalization \cite{wu2017towards}. However, collecting large datasets is expensive, as well as the computation
+requirements for them, raising questions about the most effective ratio between dataset and model sizes
+\cite{hoffmann2022training}. As understanding the landscape of loss functions is key to the solution, prior work has looked
+at visualizing loss surfaces \cite{li2018visualizing}.
+
+\section{Preliminaries}\label{sec:prelim}
+
+\subsection{General notation}
+
+In this section, we introduce the general notation used in the rest of the paper and the basic assumptions.
+
+We consider a $K$-label classification problem.
+So, let's consider $p(y|x)$ a conditional probability, which maps unobserved variable $x \in \mathcal{X}$ to the corresponding
+output $y \in \mathcal{Y}$. We consider $\mathcal{Y}$ is a subspace (or same space) as $\mathbb{R}^K$. Let $f_{\omega}(\cdot)$
+be a neural network with a list of parameters $\omega$. Let $\Omega$ be a space of parameters ($\omega \in \Omega$).
+
+Let
+$$\mathcal{D} = \left\{ (x_i, y_i) \, | \, i = 1, \dots, m \right\}$$
+be a given dataset of size $m$ consists of i.i.d.
+samples. Let $l(\cdot, \cdot)$ be a given loss function (e.g. cross-entrophy) where first argument refers to neural network's
+result and the second argument refers to the true answer. To simplify, define: $$l_i(\omega) := l(f_{\omega}(x_i), y_i).$$
+
+\begin{definition}
+  The empirical loss function for the first $k$ elements is:
+  $$\mathcal{L}_k(\omega) = \frac1k \sum\limits_1^k l_i(\omega), \,\, \mathcal{L}(\omega) := \mathcal{L}_m(\omega).$$
+\end{definition}
+
+Thus, the difference between losses for neighbouring samplem sizes is:
+$$\mathcal{L}_{k}(\omega) - \mathcal{L}_{k-1}(\omega) = \frac{l_{k}(\omega) - \mathcal{L}_{k-1}(\omega)}{k}.$$
+
+\begin{definition}
+  Let the Hessian of $\mathcal{L}_k(\omega)$ be:
+  $$\mathcal{H}_k(\omega) = \nabla^2_{\omega}\mathcal{L}_k(\omega) = \frac1k \sum\limits_1^k \nabla^2_{\omega} l_i(\omega).$$
+\end{definition}
+
+\begin{definition}
+  To calculate the overall loss landscape changing, one has to integrate the absolute difference for the entire parameter space.
+  We define \textbf{weighted difference} as:
+  $$\Delta_{k} = \int \left( \mathcal{L}_{k}(\omega) - \mathcal{L}_{k-1}(\omega) \right)^2 p(\omega) d\omega,$$
+  where $p(\omega)$ describes the priority of the particular parameter points so we can make $p(\omega)$ have higher values
+  next to the local minima.
+\end{definition}
+
+We firther investigate this difference and aimed at exploration of how adding a new object to the dataset changes the value.
+We interested in convergence of this value and properties of loss function when the training dataset size limits to $\infty$.
+
+
+\begin{definition}
+  Let $\Delta$ be a positive hyperparameter that indicates the stop-difference for $\Delta_k$. If
+  $$\Delta_{k^*} < \Delta \wedge \left( \forall k < k^*: \, \Delta_k \geq \Delta \right),$$
+  we can say that $k^*$ samples in the dataset are enough to describe the distribution of data from the general population.
+  We call $k^*$ as \textbf{sufficient}.
+\end{definition}
+
+\subsection{Assumptions}
+
+\begin{assumption}
+  Let $\omega^*$ be the local minimum of both $\mathcal{L}_{k-1}(\omega)$ and $\mathcal{L}_{k}(\omega)$.
+  Thus, $$\nabla \mathcal{L}_{k-1}(\omega^*) = \nabla \mathcal{L}_{k}(\omega^*) = 0.$$
+\end{assumption}
+
+This assumption allows us to explore the behavior and the geometry of the loss function landscape at only one point.
+
+Furthermore, using second-order Taylor's approximation for $\mathcal{L}_{k}(\omega)$ at $\omega^*$ we get:
+$$\mathcal{L}_{k}(\omega) \approx \mathcal{L}_{k}(\omega^*) + \frac12 (\omega - \omega^*)^T \mathcal{H}_k(\omega^*)
+  (\omega - \omega^*)$$
+
+\begin{assumption}
+  We can assume parameters w to be random, which will lead to quite natural condition: p(w) can be even a prior
+  distribution of w, so: $$\Delta_{k} = \mathbb{E}_{p(\omega)} \left( \mathcal{L}_{k}(\omega) - \mathcal{L}_{k-1}(\omega)
+    \right)^2 = \mathbb{D} \left( \mathcal{L}_{k}(\omega) - \mathcal{L}_{k-1}(\omega) \right) + \left( \mathbb{E} \left(
+      \mathcal{L}_{k}(\omega) - \mathcal{L}_{k-1}(\omega) \right) \right)^2$$
+\end{assumption}
+
+\section{Method}\label{sec:method}
+
+As the work with the full Hessian is computation complex, let's define a projection of neural network parameters space
+$\Omega$ to a certain subspace $\Theta$. Let $\mathcal{P}$ be a projection matrix from $\Omega$ to $\Theta$. Let $\theta$ be
+a projection: $\theta = \mathcal{P}\omega$.
+
+\section{Experiments}\label{sec:exp}
+
+To verify the theoretical estimates obtained, we conducted a detailed empirical study...
+
+\section{Discussion}\label{sec:disc}
+
+TADAAA!
+
+\section{Conclusion}\label{sec:concl}
+
+TADAAA!
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\bibliographystyle{unsrtnat}
+\bibliography{references}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newpage
+\appendix
+\section{Appendix / supplemental material}\label{app}
+
+\subsection{Additional experiments / Proofs of Theorems}\label{app:exp}
+
+TADAAA!
+
+\end{document}
