@@ -2,13 +2,13 @@ import copy
 import scipy.stats as sps
 import numpy as np
 
-from src.params_directions import create_random_direction
-from src.params_directions import init_from_params
-from src.params_directions import inplace_sum_models
+from src.directions import create_random_direction
+from src.directions import init_from_params
+from src.directions import inplace_sum_models
 from src.utils import create_losses_func
 
 from tqdm.auto import tqdm
-from src.params_directions import calc_sum_models
+from src.directions import calc_sum_models
 
 
 class LossCalculator:
