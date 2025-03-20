@@ -225,7 +225,7 @@ $$\ell_i(\bw) := \ell(f_{\bw}(\bx_i), y_i).$$
 
 \begin{definition}
   The empirical loss function for the first $k$ elements is:
-  $$\mathcal{L}_k(\bw) = \frac1k \sum\limits_1^k \ell_i(\bw), \,\, \mathcal{L}(\bw) := \mathcal{L}_m(\bw).$$
+  $$\mathcal{L}_k(\bw) = \frac1M \sum\limits_1^k \ell_i(\bw), \,\, \mathcal{L}(\bw) := \mathcal{L}_m(\bw).$$
 \end{definition}
 
 Thus, the difference between losses for neighbouring samplem sizes is:
@@ -238,7 +238,7 @@ $$\mathcal{L}_{k}(\bw) - \mathcal{L}_{k-1}(\bw) = \frac{\ell_{k}(\bw) - \mathcal
 
 \begin{definition}
   To calculate the overall loss landscape changing, one has to integrate the absolute difference for the entire parameter space.
-  We define \textbf{weighted difference} as:
+  We define $\mathbf{\Delta}$-\textbf{function} (delta-function) as:
   $$\Delta_{k} = \int \left( \mathcal{L}_{k}(\bw) - \mathcal{L}_{k-1}(\bw) \right)^2 p(\bw) dw,$$
   where $p(\bw)$ describes the priority of the particular parameter points so we can make $p(\bw)$ have higher values
   next to the local minima.
@@ -246,7 +246,6 @@ $$\mathcal{L}_{k}(\bw) - \mathcal{L}_{k-1}(\bw) = \frac{\ell_{k}(\bw) - \mathcal
 
 We firther investigate this difference and aimed at exploration of how adding a new object to the dataset changes the value.
 We interested in convergence of this value and properties of loss function when the training dataset size limits to $\infty$.
-
 
 \begin{definition}
   Let $\Delta$ be a positive hyperparameter that indicates the stop-difference for $\Delta_k$. If
@@ -282,9 +281,143 @@ As the work with the full Hessian is computation complex, let's define a project
 $\Omega$ to a certain subspace $\Theta$. Let $\bP$ be a projection matrix from $\Omega$ to $\Theta$. Let $\btheta$ be
 a projection: $\btheta = \bP\bw$.
 
+Let $\mathbf{V} = \{\mathbf{e}_1, \dots, \mathbf{e}_d\}$ be eigenvectors of $\mathbf{H}$. We select $d$ of them and project parameters space
+into a subspace on these $d$ vectors. These vectors should represent maximum eigenvalues of $\mathbf{H}$ as these directions
+have the most impact to the loss function difference.
 \section{Experiments}\label{sec:exp}
 
-To verify the theoretical estimates obtained, we conducted a detailed empirical study...
+To verify the theoretical estimates obtained, we conducted a detailed empirical study.
+In this section, we present experiments aimed at analyzing how the loss landscape evolves as the size of the training
+set increases.
+
+\paragraph{Data Preparation.}
+We use the MNIST dataset, which consists of $60{,}000$ training images and $10{,}000$ test
+images of handwritten digits (0--9). Each image is $28\times28$ pixels, grayscale.
+
+\paragraph{Model Architecture.}
+We use the following neural network models and preparations:
+\begin{itemize}
+  \item A multilayer perceptron (MLP) with different number of hidden layers (ReLU activations).
+  \item The choice of architecture remains consistent across all experiments.
+\end{itemize}
+
+
+The first two are preliminary experiments, conducted as illustrative examples on the MNIST dataset,
+while the others focusing on Hessian-based projections and show connections between eigenvalues and loss function convergence.
+That is our primary aim --- to check our theoretical estimates in-deal.
+
+
+\subsection{Visualizing the Loss Landscape in a Random Two-Dimensional Subspace}
+The idea of this initial experiment is to get an intuitive sense of how the loss function’s landscape shifts with
+different training-set sizes. To do this, we pick two random directions $\mathbf{v_1}$ and $\mathbf{v_2}$ in the parameter
+space and project the network’s parameters onto the subspace they span.
+
+
+\paragraph{Procedure}
+\begin{enumerate}
+  \item \textbf{Training on different sizes.} Train a neural network on increasingly larger subsets.
+  \item \textbf{Parameter snapshot.} After training, fix the final (or near-final) weights $\mathbf{w}^*$.
+  \item \textbf{Subspace grid.} Form a grid of points $\{\mathbf{w}^* + \alpha \mathbf{v}_1 + \beta \mathbf{v}_2\}$ around $\mathbf{w}^*$, where $\alpha$ and $\beta$ vary in a chosen range.
+  \item \textbf{Loss evaluation.} Compute and plot the loss at each grid point, producing a 3D visualization.
+\end{enumerate}
+
+For smaller $N$, the landscape exhibits sharper fluctuations. As $N$ grows, the landscape often appears smoother and more stable.
+
+\begin{figure}[!htbp]
+  \hspace*{-11.5cm}
+  \subfloat{\includegraphics[width=2\textwidth]{img/Ls_16.pdf}}
+  \caption{Loss function landscape}
+  \label{fig:base_loss}
+\end{figure}
+
+\begin{figure}[!htbp]
+  \hspace*{-11.5cm}
+  \subfloat{\includegraphics[width=2\textwidth]{img/Ld_10.pdf}}
+  \caption{Loss function difference $(\mathcal{L}_{k} - \mathcal{L}_{k-1})^2$ landscape}
+  \label{fig:base_loss_diff}
+\end{figure}
+
+\subsection{Visualizing delta-function}
+
+Now we dig deeper and visualize our $\Delta_k$ function to clearly understand the difference in the loss function when
+moving from a model trained on $k-1$ samples to one trained on $k$ samples. To do this we sample a bunch of random gaussian
+vectors (all components are normally distributed) and calculate a
+math expectation of modulus of the loss function difference.
+Directly computing this expectation over the entire distribution of random directions $\mathbf{d}$
+is impossible, so we employ a Monte Carlo approximation: using Monte-Carlo method (we take the mean value of loss function
+on sampled gaussian shifted points):
+
+$$\Delta_k = \mathbb{E}_{p(\bw)} \left( \mathcal{L}_{k}(\bw) - \mathcal{L}_{k-1}(\bw) \right)^2 \approx
+  \frac{1}{k} \sum_{t=1}^{k} \left( \mathcal{L}_k(\mathbf{w}^* + \mathbf{d}_t) - \mathcal{L}_{k-1}(\mathbf{w}^* + \mathbf{d}_t) \right)^2$$
+
+where $\mathbf{d}_t \sim \mathcal{N}(0,I_d)$ are $K$ random gaussian samples drawn from a multivariate normal distribution
+with zero mean and identity covariance from a subspace of rank $d$. Specifically, we proceed as follows:
+
+\begin{enumerate}
+  \item \textbf{Sampling Directions.} Generate $K$ independent directions $\mathbf{d}_1, \dots, \mathbf{d}_M$
+        from $\mathcal{N}(0,I_d)$.
+  \item \textbf{Loss Evaluation.} For each direction $\mathbf{d}_t$, evaluate the loss at
+        $\mathbf{w}^* + \mathbf{d}_t$ and
+        $$\left( \mathcal{L}_{k}(\bw) - \mathcal{L}_{k-1}(\bw) \right)^2 $$
+  \item \textbf{Averaging.} Average these values values over $k = 1, \dots, K$ to approximate $\Delta_k$.
+\end{enumerate}
+
+By increasing $K$, we obtain a more reliable estimate of the expected difference in loss landscapes.
+This Monte Carlo approach is straightforward to implement and does not require explicit knowledge of the underlying loss
+function's distribution.
+
+The $\Delta$-function generally decreases as $N$ increases, suggesting that the landscape differences between neighbouring
+sizes become smaller.
+Beyond a certain point, $\Delta$-values are nearly negligible, indicating that adding more data has minimal impact on
+the local landscape in these directions.
+
+
+\noindent
+\textbf{Conclusion from Preliminary Experiments.}
+These initial experiments demonstrate that the loss landscape becomes progressively more stable with increasing $N$.
+However, the directions used here are either random. This motivates a more rigorous approach in the \emph{main experiment}
+below, where we focus specifically on the most critical directions of curvature --- those corresponding to the top
+eigenvalues of the Hessian.
+
+\subsection{Main Experiment: Projection onto Dominant Hessian Eigenvectors}
+
+\paragraph{Rationale}
+From prior work \cite{sagun2018empirical}, we know that only a few Hessian eigenvectors (those associated with the largest
+eigenvalues) tend to capture the most significant curvature directions. By projecting onto these principal directions,
+we can more precisely measure how the landscape the loss surface changes as $k$ increases.
+
+\paragraph{Procedure}
+\begin{enumerate}
+  \item \textbf{Hessian approximation.} For each trained model, approximate
+        the Hessian $\mathbf{H}$ or its dominant eigenvalues/eigenvectors. Techniques ???
+  \item \textbf{Eigen-decomposition.} Identify the top $d$ eigenvectors $\{\mathbf{e}_1, \dots, \mathbf{e}_d\}$ with the
+        largest eigenvalues.
+  \item \textbf{Subspace exploration.} For each model, calculate a $\Delta$ fuction via the same way as in the second
+        experiment (using Monte-Carlo) and appy visualization/.
+\end{enumerate}
+
+\paragraph{Goal and Expected Outcome}
+\begin{itemize}
+  \item \textbf{Refined understanding.} By focusing on the directions of largest curvature, we expect a clearer
+        measure of how the landscape of the loss surface changes with additional data.
+  \item \textbf{Identifying the threshold.} This approach should yield a more accurate estimate of the point at which the
+        landscape effectively stabilizes, thus helping to pinpoint a minimum viable dataset size.
+  \item \textbf{Connect with theoretical results.} By applying experiments we check our calculations above on the reality.
+\end{itemize}
+
+
+
+
+
+\begin{figure}[!htbp]
+  \hspace*{-0.7cm}
+  \subfloat{\includegraphics[width=1.15\textwidth]{img/D_32.pdf}}\\
+  \caption{$\Delta$-function visualization. `Sigma` parameter refers to the variance of sampled gaussian vectors, `dim' 
+  refers to the rank of the subspace.}
+  \label{fig:base_delta}
+\end{figure}
+
+
 
 \section{Discussion}\label{sec:disc}
 

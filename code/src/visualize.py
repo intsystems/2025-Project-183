@@ -105,6 +105,7 @@ class LossVisualizer:
                                   alpha=1.0)
         fig.colorbar(surf, shrink=0.5, aspect=5)
         ax_3d.view_init(40, 20)
+        plt.savefig(f"Ld_{size1}.eps")
         plt.show()
 
     def visualize(self, size=None,
@@ -139,7 +140,7 @@ class LossVisualizer:
                                   alpha=1.0)
         fig.colorbar(surf, shrink=0.5, aspect=5)
         ax_3d.view_init(40, 20)
-
+        plt.savefig(f"Ls_{size}.eps")
         plt.show()
 
 
@@ -156,7 +157,7 @@ class DeltaVisualizer:
 
         deltas = self.delta_calc.calc_deltas(mode, params, num_samples=num_samples)
 
-        fig, axs = plt.subplots(figsize=(16, 6), nrows=1, ncols=2)
+        fig, axs = plt.subplots(figsize=(9, 6), nrows=2, ncols=1)
         fig.suptitle(fr'$\Delta_k$; {params}')
         axs[0].plot(deltas, label="Test")
         mult_coef = np.arange(1, len(deltas) + 1)
@@ -185,7 +186,7 @@ class DeltaVisualizer:
             xlabel='k',
             ylabel=ylabels[1],
         )
-
+        plt.savefig("2.eps")
         plt.show()
 
     def compare_params(self,
