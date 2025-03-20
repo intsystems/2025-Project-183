@@ -250,7 +250,7 @@ We interested in convergence of this value and properties of loss function when 
 
 \begin{definition}
   Let $\Delta$ be a positive hyperparameter that indicates the stop-difference for $\Delta_k$. If
-  $$k^* = \inf\limits_k\{\Delta_k < \Delta\}$$
+  $$k^* = \inf\limits_k\{\forall m \geq k: \, \Delta_m < \Delta\}$$
   we can say that $k^*$ samples in the dataset are enough to describe the distribution of data from the general population.
   We call $k^*$ as \textbf{sufficient}.
 \end{definition}
