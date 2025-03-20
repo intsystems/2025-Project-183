@@ -290,7 +290,7 @@ To verify the theoretical estimates obtained, we conducted a detailed empirical 
 In this section, we present experiments aimed at analyzing how the loss landscape evolves as the size of the training
 set increases.
 
-\paragraph{Data Preparation.}
+\paragraph{Data.}
 We use the MNIST dataset, which consists of $60{,}000$ training images and $10{,}000$ test
 images of handwritten digits (0--9). Each image is $28\times28$ pixels, grayscale.
 
@@ -356,9 +356,10 @@ with zero mean and identity covariance from a subspace of rank $d$. Specifically
 \begin{enumerate}
   \item \textbf{Sampling Directions.} Generate $K$ independent directions $\mathbf{d}_1, \dots, \mathbf{d}_M$
         from $\mathcal{N}(0,I_d)$.
+  \item \textbf{Decreasing multidimension.} Project the network’s parameters onto the subspace they span.
   \item \textbf{Loss Evaluation.} For each direction $\mathbf{d}_t$, evaluate the loss at
         $\mathbf{w}^* + \mathbf{d}_t$ and
-        $$\left( \mathcal{L}_{k}(\bw) - \mathcal{L}_{k-1}(\bw) \right)^2 $$
+        $$\left( \mathcal{L}_{k}(\bw + \mathbf{d}_t) - \mathcal{L}_{k-1}(\bw + \mathbf{d}_t) \right)^2 $$
   \item \textbf{Averaging.} Average these values values over $k = 1, \dots, K$ to approximate $\Delta_k$.
 \end{enumerate}
 
@@ -381,7 +382,6 @@ eigenvalues of the Hessian.
 
 \subsection{Main Experiment: Projection onto Dominant Hessian Eigenvectors}
 
-\paragraph{Rationale}
 From prior work \cite{sagun2018empirical}, we know that only a few Hessian eigenvectors (those associated with the largest
 eigenvalues) tend to capture the most significant curvature directions. By projecting onto these principal directions,
 we can more precisely measure how the landscape the loss surface changes as $k$ increases.
@@ -392,28 +392,24 @@ we can more precisely measure how the landscape the loss surface changes as $k$ 
         the Hessian $\mathbf{H}$ or its dominant eigenvalues/eigenvectors. Techniques ???
   \item \textbf{Eigen-decomposition.} Identify the top $d$ eigenvectors $\{\mathbf{e}_1, \dots, \mathbf{e}_d\}$ with the
         largest eigenvalues.
-  \item \textbf{Subspace exploration.} For each model, calculate a $\Delta$ fuction via the same way as in the second
-        experiment (using Monte-Carlo) and appy visualization/.
+  \item \textbf{Calculation and analization.} For each model, calculate a $\Delta$ fuction via the same way as in the second
+        experiment (using Monte-Carlo) and visualize via plots.
 \end{enumerate}
 
 \paragraph{Goal and Expected Outcome}
 \begin{itemize}
-  \item \textbf{Refined understanding.} By focusing on the directions of largest curvature, we expect a clearer
+  \item By focusing on the directions of largest curvature, we expect a clearer
         measure of how the landscape of the loss surface changes with additional data.
-  \item \textbf{Identifying the threshold.} This approach should yield a more accurate estimate of the point at which the
+  \item This approach should yield a more accurate estimate of the point at which the
         landscape effectively stabilizes, thus helping to pinpoint a minimum viable dataset size.
-  \item \textbf{Connect with theoretical results.} By applying experiments we check our calculations above on the reality.
+  \item By applying experiments we check our calculations above on the reality.
 \end{itemize}
 
-
-
-
-
 \begin{figure}[!htbp]
-  \hspace*{-0.7cm}
-  \subfloat{\includegraphics[width=1.15\textwidth]{img/D_32.pdf}}\\
-  \caption{$\Delta$-function visualization. `Sigma` parameter refers to the variance of sampled gaussian vectors, `dim' 
-  refers to the rank of the subspace.}
+  \centering
+  \subfloat{\includegraphics[width=1\textwidth]{img/D_32.pdf}}\\
+  \caption{$\Delta$-function visualization. `Sigma` parameter refers to the variance of sampled gaussian vectors, `dim'
+    refers to the rank of the subspace.}
   \label{fig:base_delta}
 \end{figure}
 

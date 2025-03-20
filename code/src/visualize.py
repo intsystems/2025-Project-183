@@ -105,8 +105,8 @@ class LossVisualizer:
                                   alpha=1.0)
         fig.colorbar(surf, shrink=0.5, aspect=5)
         ax_3d.view_init(40, 20)
-
-        # plt.savefig(f"Ld_{size1}.eps")
+        plt.tight_layout()
+        plt.savefig(f"Ld_{size1}.pdf")
         plt.show()
 
     def visualize(self, size=None,
@@ -141,8 +141,8 @@ class LossVisualizer:
                                   alpha=1.0)
         fig.colorbar(surf, shrink=0.5, aspect=5)
         ax_3d.view_init(40, 20)
-
-        # plt.savefig(f"Ls_{size}.eps")
+        plt.tight_layout()
+        plt.savefig(f"Ls_{size}.pdf")
         plt.show()
 
 
@@ -188,6 +188,7 @@ class DeltaVisualizer:
             xlabel='k',
             ylabel=ylabels[1],
         )
+        plt.tight_layout()
         # plt.savefig("2.eps")
         plt.show()
 
