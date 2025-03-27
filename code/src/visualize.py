@@ -8,23 +8,18 @@ import scipy.stats as sps
 from tqdm.auto import tqdm
 
 from src.calc import DeltaCalculator
-from src.calc import LossCalculator
 
 
 class LossVisualizer:
-    def __init__(self, model, loader, criterion, grid_step=0.1, direction_norm=1):
+    def __init__(self, calculator, grid_step=0.1, direction_norm=1):
         """
             grid_step in [0, 1]
         """
-        self.grid_loss = None
         self.grid_step = grid_step
-        self.direction_norm = direction_norm
-
         self.coef_grid = list(itertools.product(np.arange(-1, 1 + self.grid_step, step=self.grid_step),
                                                 np.arange(-1, 1 + self.grid_step, step=self.grid_step)))
 
-        self.loss_calc = LossCalculator(model, loader, criterion)
-        self.grid_loss = self.loss_calc.calc_losses(self.coef_grid, self.direction_norm)
+        self.grid_loss = calculator.calc_losses(self.coef_grid, direction_norm)
 
     def _set_xy_grid(self, x_grid_bounds, y_grid_bounds):
         xs = np.arange(-1, 1 + self.grid_step, step=self.grid_step)
@@ -105,7 +100,7 @@ class LossVisualizer:
                                   alpha=1.0)
         fig.colorbar(surf, shrink=0.5, aspect=5)
         ax_3d.view_init(40, 20)
-        plt.tight_layout()
+
         plt.savefig(f"Ld_{size1}.pdf")
         plt.show()
 
@@ -141,7 +136,6 @@ class LossVisualizer:
                                   alpha=1.0)
         fig.colorbar(surf, shrink=0.5, aspect=5)
         ax_3d.view_init(40, 20)
-        plt.tight_layout()
         plt.savefig(f"Ls_{size}.pdf")
         plt.show()
 
@@ -159,13 +153,13 @@ class DeltaVisualizer:
 
         deltas = self.delta_calc.calc_deltas(mode, params, num_samples=num_samples)
 
-        fig, axs = plt.subplots(figsize=(9, 6), nrows=2, ncols=1)
+        fig, axs = plt.subplots(figsize=(9, 6), nrows=1, ncols=1)
         fig.suptitle(fr'$\Delta_k$; {params}')
-        axs[0].plot(deltas, label="Test")
+        axs.plot(deltas, label="Test")
         mult_coef = np.arange(1, len(deltas) + 1)
         if params['estim_func'] == 'square':
             mult_coef = mult_coef ** 2
-        axs[1].plot(deltas * mult_coef)
+        # axs[1].plot(deltas * mult_coef)
 
         if params['estim_func'] == 'abs':
             ylabels = [r'$\mathbb{E}_{p(\mathbf{w})}|L_k - L_{k-1}|$',
@@ -177,19 +171,18 @@ class DeltaVisualizer:
             ylabels = [r'$\mathbb{E}_{p(\mathbf{w})}(L_k - L_{k-1})$',
                        r'$\mathbb{E}_{p(\mathbf{w})}(L_k - L_{k-1}) \cdot k$']
 
-        axs[0].set(
+        axs.set(
             xlabel='k',
             ylabel=ylabels[0],
             xlim=[begin, len(deltas)],
             ylim=[min(deltas[begin:]), max(deltas[begin:]) * 1.2]
         )
 
-        axs[1].set(
-            xlabel='k',
-            ylabel=ylabels[1],
-        )
-        plt.tight_layout()
-        # plt.savefig("2.eps")
+        # axs[1].set(
+        #     xlabel='k',
+        #     ylabel=ylabels[1],
+        # )
+        plt.savefig("2.eps")
         plt.show()
 
     def compare_params(self,

@@ -104,3 +104,31 @@ def create_losses_func(dataloader, criterion):
         return losses
 
     return calc_losses
+
+
+def valid_loss(model, criterion, dataloader, device):
+    """
+    Вычисляет среднее значение loss по даталоадеру без отсоединения от графа вычислений.
+    """
+    model.eval()
+    total_loss = 0.0
+    count = 0
+    for x, y in dataloader:
+        x, y = x.to(device), y.to(device)
+        outputs = model(x)
+        loss = criterion(outputs, y)
+        total_loss += loss
+        count += 1
+    return total_loss / count
+
+
+def create_loss_func(dataloader, criterion):
+    """
+    Возвращает функцию, вычисляющую loss по даталоадеру для модели.
+    Предполагается, что у модели есть атрибут device.
+    """
+
+    def calc_loss(model):
+        return valid_loss(model, criterion, dataloader, model.device)
+
+    return calc_loss
