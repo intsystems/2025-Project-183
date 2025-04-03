@@ -150,13 +150,13 @@ class DeltaVisualizer:
 
         deltas = self.calculator.calc_deltas(params, num_samples=num_samples)
 
-        fig, axs = plt.subplots(figsize=(9, 6), nrows=1, ncols=1)
+        fig, axs = plt.subplots(figsize=(9, 6), nrows=1, ncols=2)
         fig.suptitle(fr'$\Delta_k$; {params}')
-        axs.plot(deltas, label="Test")
+        axs[0].plot(deltas, label="Test")
         mult_coef = np.arange(1, len(deltas) + 1)
         if params['estim_func'] == 'square':
             mult_coef = mult_coef ** 2
-        # axs[1].plot(deltas * mult_coef)
+        axs[1].plot(deltas * mult_coef)
 
         if params['estim_func'] == 'abs':
             ylabels = [r'$\mathbb{E}_{p(\mathbf{w})}|L_k - L_{k-1}|$',
@@ -168,17 +168,17 @@ class DeltaVisualizer:
             ylabels = [r'$\mathbb{E}_{p(\mathbf{w})}(L_k - L_{k-1})$',
                        r'$\mathbb{E}_{p(\mathbf{w})}(L_k - L_{k-1}) \cdot k$']
 
-        axs.set(
+        axs[0].set(
             xlabel='k',
             ylabel=ylabels[0],
             xlim=[begin, len(deltas)],
             ylim=[min(deltas[begin:]), max(deltas[begin:]) * 1.2]
         )
 
-        # axs[1].set(
-        #     xlabel='k',
-        #     ylabel=ylabels[1],
-        # )
+        axs[1].set(
+            xlabel='k',
+            ylabel=ylabels[1],
+        )
         plt.savefig("2.eps")
         plt.show()
 
