@@ -92,7 +92,7 @@ class DeltaCalculator:
         self.model = model
         self.core = core
         self.calc_losses_func = create_loss_list_func(criterion, dataloader)
-        self.directions = None
+        self.directions = []
 
     def calc_shifted_losses(self, mode_params):
         if len(self.directions) < mode_params['dim']:

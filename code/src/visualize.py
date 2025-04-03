@@ -183,7 +183,6 @@ class DeltaVisualizer:
         plt.show()
 
     def compare_params(self,
-                       mode,
                        params,
                        target_param_key,
                        target_param_grid,
@@ -194,7 +193,7 @@ class DeltaVisualizer:
         deltas = []
         for target_param in tqdm(target_param_grid):
             params[target_param_key] = target_param
-            deltas = self.calculator.calc_deltas(mode, params, num_samples=num_samples)
+            deltas = self.calculator.calc_deltas(params, num_samples=num_samples)
             target_param_to_deltas[target_param] = deltas
 
         fig, axs = plt.subplots(figsize=(16, 6), nrows=1, ncols=2)
