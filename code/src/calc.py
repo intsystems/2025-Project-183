@@ -1,73 +1,82 @@
 import copy
+import torch
 import scipy.stats as sps
 import numpy as np
-
-from src.directions import create_random_direction
-from src.directions import init_from_params
-from src.directions import inplace_sum_models
-from src.utils import create_losses_func
-from src.utils import create_loss_func
-
 from tqdm.auto import tqdm
-from src.directions import calc_sum_models
-from src.directions import create_top_hessian_directions
+
+
+def inplace_sum_models(model1, model2, coef1, coef2):
+    """
+        return model1 := model1 * coef1 + model2 * coef2
+    """
+    final = model1
+    for (name1, param1), (name2, param2) in zip(final.state_dict().items(), model2.state_dict().items()):
+        transformed_param = param1 * coef1 + param2 * coef2
+        param1.copy_(transformed_param)
+    return final
+
+
+def calc_sum_models(model1, model2, coef1, coef2):
+    final = copy.deepcopy(model1)
+    final.load_state_dict(copy.deepcopy(model1.state_dict()))
+    return inplace_sum_models(final, model2, coef1, coef2)
+
+
+def init_from_params(model, direction):
+    """
+        inplace init model from direction as from parameters()
+    """
+    for p_orig, p_other in zip(model.parameters(), direction):
+        with torch.no_grad():
+            p_orig.copy_(p_other)
+
+
+def get_loss_list(model, criterion, dataloader, device):
+    model.eval()
+    losses = []
+
+    for x, y in dataloader:
+        x, y = x.to(device), y.to(device)
+
+        outputs = model(x)
+        loss = criterion(outputs, y)
+
+        losses.append(loss.detach().cpu().item())
+
+    return losses
+
+
+def create_loss_list_func(criterion, dataloader):
+    def calc_losses(model):
+        return get_loss_list(model, criterion, dataloader, model.device)
+
+    return calc_losses
 
 
 class LossCalculator:
-    def __init__(self, model, loader, criterion):
+    def __init__(self, model, criterion, dataloader, core):
         self.model = model
-        self.calc_losses_func = create_losses_func(loader, criterion)
+        self.core = core
+        self.loss_func = create_loss_list_func(criterion, dataloader)
+        self.directions = []
 
-    def calc_losses(self, coef_grid, direction_norm):
+    def calc_losses(self, grid):
         """
             grid: 2d from [-1, 1]*[-1, 1]
         """
 
-        result = {}
-        direction1 = create_random_direction(self.model, external_factor=direction_norm)
-        direction2 = create_random_direction(self.model, external_factor=direction_norm)
+        if len(self.directions) < 2:
+            self.directions = self.directions + self.core.get(2 - len(self.directions))
 
-        for coef1, coef2 in tqdm(coef_grid):
-            target_add = [p1 * coef1 + p2 * coef2 for p1, p2 in zip(direction1, direction2)]
+        result = {}
+
+        for coef1, coef2 in tqdm(grid):
+            target_add = [p1 * coef1 + p2 * coef2 for p1, p2 in zip(self.directions[0], self.directions[1])]
             target_add_model = copy.deepcopy(self.model)
             init_from_params(target_add_model, target_add)
 
             target_model = calc_sum_models(self.model, target_add_model, 1, 1)
-            losses = self.calc_losses_func(target_model)
-            result[(coef1, coef2)] = losses
-        return result
-
-
-class LossEigenCalculator:
-    def __init__(self, model, loss_func):
-        self.model = model
-        self.loss_func = loss_func
-
-    def calc_losses(self, coef_grid, direction_norm):
-        """
-        Вычисляет значения loss по сетке коэффициентов (coef1, coef2)
-        вдоль направлений, приближённых к первым двум собственным векторам гессиана функции потерь.
-
-        Аргументы:
-          coef_grid: набор пар коэффициентов, например, из диапазона [-1, 1] по обеим осям.
-          direction_norm: коэффициент масштабирования направлений.
-        """
-        result = {}
-
-        loss = self.calc_loss_func(self.model)
-
-        direction1, direction2 = create_top_hessian_directions(
-            self.model, loss,
-            external_factor=direction_norm
-        )
-
-        for coef1, coef2 in tqdm(coef_grid):
-            target_add = [p1 * coef1 + p2 * coef2 for p1, p2 in zip(direction1, direction2)]
-            target_add_model = copy.deepcopy(self.model)
-            init_from_params(target_add_model, target_add)
-
-            target_model = calc_sum_models(self.model, target_add_model, 1, 1)
-            losses = self.calc_losses_func(target_model)
+            losses = self.loss_func(target_model)
             result[(coef1, coef2)] = losses
 
         return result
@@ -79,29 +88,38 @@ class DeltaCalculator:
         delta_k = (L_{k+1} - L_k)
     """
 
-    def __init__(self, model, loader, criterion):
+    def __init__(self, model, criterion, dataloader, core):
         self.model = model
-        self.calc_losses_func = create_losses_func(loader, criterion)
+        self.core = core
+        self.calc_losses_func = create_loss_list_func(criterion, dataloader)
         self.directions = None
 
-    def calc_shifted_losses(self, mode, mode_params):
-        target_model = None
-        if mode == 'random-subspace-proj':
-            if self.directions is None:
-                self.directions = [create_random_direction(self.model, external_factor=1.0) for _ in
-                                   range(mode_params['dim'])]
-            coefs = list(sps.norm(np.zeros(mode_params['dim']), mode_params['sigma']).rvs())
-            target_add_params = [coef * d[i] for coef, d in zip(coefs, self.directions) for i in
-                                 range(len(self.directions[0]))]
+    def calc_shifted_losses(self, mode_params):
+        if len(self.directions) < mode_params['dim']:
+            self.directions = self.directions + self.core.get(mode_params['dim'] - len(self.directions))
 
-            target_model = copy.deepcopy(self.model)
-            init_from_params(target_model, target_add_params)
+        coefs = list(sps.norm(np.zeros(mode_params['dim']), mode_params['sigma']).rvs())
+        target_add_params = [coef * d[i] for coef, d in zip(coefs, self.directions) for i in
+                             range(len(self.directions[0]))]
 
-            target_model = inplace_sum_models(target_model, self.model, 1.0, 1.0)
+        target_model = copy.deepcopy(self.model)
+        init_from_params(target_model, target_add_params)
+        target_model = inplace_sum_models(target_model, self.model, 1.0, 1.0)
 
         return self.calc_losses_func(target_model)
 
-    def calc_diff_lists(self, mode, mode_params, num_samples=10):
+    def calc_deltas(self, mode_params, num_samples=10):
+        diff_lists = self.calc_diff_lists(mode_params, num_samples)
+        if mode_params['estim_func'] == 'square':
+            diff_lists = diff_lists ** 2
+        elif mode_params['estim_func'] == 'abs':
+            diff_lists = np.abs(diff_lists)
+        elif mode_params['estim_func'] is None:
+            pass
+        deltas = np.mean(diff_lists, axis=0)
+        return deltas
+
+    def calc_diff_lists(self, mode_params, num_samples=10):
         """
             mode: string
             mode_params: dict, params to esim delta in appropriate mode
@@ -114,21 +132,10 @@ class DeltaCalculator:
         for _ in tqdm(np.arange(1, num_samples + 1)):
             diff_lists.append(
                 self.calc_differences(
-                    self.calc_shifted_losses(mode, mode_params)
+                    self.calc_shifted_losses(mode_params)
                 )
             )
         return np.array(diff_lists)
-
-    def calc_deltas(self, mode, mode_params, num_samples=10):
-        diff_lists = self.calc_diff_lists(mode, mode_params, num_samples)
-        if mode_params['estim_func'] == 'square':
-            diff_lists = diff_lists ** 2
-        elif mode_params['estim_func'] == 'abs':
-            diff_lists = np.abs(diff_lists)
-        elif mode_params['estim_func'] is None:
-            pass
-        deltas = np.mean(diff_lists, axis=0)
-        return deltas
 
     @staticmethod
     def calc_differences(array):

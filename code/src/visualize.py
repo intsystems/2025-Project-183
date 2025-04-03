@@ -11,15 +11,14 @@ from src.calc import DeltaCalculator
 
 
 class LossVisualizer:
-    def __init__(self, calculator, grid_step=0.1, direction_norm=1):
+    def __init__(self, calculator, grid_step=0.1):
         """
             grid_step in [0, 1]
         """
         self.grid_step = grid_step
-        self.coef_grid = list(itertools.product(np.arange(-1, 1 + self.grid_step, step=self.grid_step),
-                                                np.arange(-1, 1 + self.grid_step, step=self.grid_step)))
-
-        self.grid_loss = calculator.calc_losses(self.coef_grid, direction_norm)
+        self.grid_loss = calculator.calc_losses(
+            list(itertools.product(np.arange(-1, 1 + self.grid_step, step=self.grid_step),
+                                   np.arange(-1, 1 + self.grid_step, step=self.grid_step))))
 
     def _set_xy_grid(self, x_grid_bounds, y_grid_bounds):
         xs = np.arange(-1, 1 + self.grid_step, step=self.grid_step)
@@ -36,12 +35,11 @@ class LossVisualizer:
            bounds: None | (-min, max)
         """
         assert bounds is None or bounds[0] < bounds[1]
-        grid_loss = self.grid_loss
 
         xs, ys = self._set_xy_grid(x_grid_bounds, y_grid_bounds)
         xgrid, ygrid = np.meshgrid(xs, ys)
-        zgrid1 = np.array([[np.mean(grid_loss[(x, y)][:size1]) for x in xs] for y in ys])
-        zgrid2 = np.array([[np.mean(grid_loss[(x, y)][:size2]) for x in xs] for y in ys])
+        zgrid1 = np.array([[np.mean(self.grid_loss[(x, y)][:size1]) for x in xs] for y in ys])
+        zgrid2 = np.array([[np.mean(self.grid_loss[(x, y)][:size2]) for x in xs] for y in ys])
         zgrid = zgrid2 - zgrid1
 
         best_loss = np.round(min(np.min(zgrid1), np.min(zgrid2)), 4)
@@ -141,17 +139,16 @@ class LossVisualizer:
 
 
 class DeltaVisualizer:
-    def __init__(self, model, loader, criterion):
-        self.delta_calc = DeltaCalculator(model, loader, criterion)
-        pass
+    def __init__(self, calculator):
+        self.calculator = calculator
 
-    def visualize_diff(self, mode,
+    def visualize_diff(self,
                        params,
                        num_samples,
                        begin):
         params = copy.deepcopy(params)
 
-        deltas = self.delta_calc.calc_deltas(mode, params, num_samples=num_samples)
+        deltas = self.calculator.calc_deltas(params, num_samples=num_samples)
 
         fig, axs = plt.subplots(figsize=(9, 6), nrows=1, ncols=1)
         fig.suptitle(fr'$\Delta_k$; {params}')
@@ -197,7 +194,7 @@ class DeltaVisualizer:
         deltas = []
         for target_param in tqdm(target_param_grid):
             params[target_param_key] = target_param
-            deltas = self.delta_calc.calc_deltas(mode, params, num_samples=num_samples)
+            deltas = self.calculator.calc_deltas(mode, params, num_samples=num_samples)
             target_param_to_deltas[target_param] = deltas
 
         fig, axs = plt.subplots(figsize=(16, 6), nrows=1, ncols=2)
@@ -246,7 +243,7 @@ class DeltaVisualizer:
                             ):
 
         max_samples_num = max(num_samples_grid)
-        diff_lists = self.delta_calc.calc_diff_lists(mode, params, num_samples=max_samples_num)
+        diff_lists = self.calculator.calc_diff_lists(mode, params, num_samples=max_samples_num)
         if params['estim_func'] == 'square':
             diff_lists = diff_lists ** 2
         elif params['estim_func'] == 'abs':
