@@ -9,7 +9,6 @@ import torch
 from torch.utils.data import DataLoader
 from torchvision import datasets
 import numpy as np
-from tqdm.auto import tqdm
 
 
 def init_dataloader(dataset_name,

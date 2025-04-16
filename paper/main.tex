@@ -3,24 +3,23 @@
 
 % if you need to pass options to natbib, use, e.g.:
 \PassOptionsToPackage{numbers, sort, compress}{natbib}
-% before loading neurips_2024
+% before loading neurips_2025
 
 
 % ready for submission
-%\usepackage{neurips_2024}
+%\usepackage{neurips_2025}
 
 
-% to compile a preprint version, e.g., for submission to arXiv, add add the
-% [preprint] option:
+% to compile a preprint version, e.g., for submission to arXiv, add add the [preprint] option:
 \usepackage[preprint]{neurips_2025}
 
 
 % to compile a camera-ready version, add the [final] option, e.g.:
-%     \usepackage[final]{neurips_2024}
+%\usepackage[final]{neurips_2024}
 
 
 % to avoid loading the natbib package, add option nonatbib:
-%    \usepackage[nonatbib]{neurips_2024}
+%\usepackage[nonatbib]{neurips_2024}
 
 
 \usepackage[utf8]{inputenc} % allow utf-8 input
@@ -65,7 +64,6 @@
 
 %%%
 
-
 \title{Neural Networks Loss Landscape Convergence in Different Low-Dimensional Spaces}
 
 
@@ -102,7 +100,6 @@
 
 
 \begin{document}
-
 
 \maketitle
 
@@ -214,7 +211,7 @@ In this section, we introduce the general notation used in the rest of the paper
 We consider a $K$-label classification problem.
 So, let's consider $p(y|\bx)$ a conditional probability, which maps unobserved variable $\bx \in \bX$ to the corresponding
 output $y \in \by$. We consider $\by$ is a subspace (or same space) as $\mathbb{R}^K$. Let $f_{\bw}(\cdot)$
-be a neural network with a list of parameters $\bw$. Let $\Omega$ be a space of parameters ($\bw \in \Omega$).
+be a neural network with a list of parameters $\bw$. Let $\bOmega$ be a space of parameters ($\bw \in \bOmega$).
 
 Let
 $$\mathcal{D} = \left\{ (\bx_i, y_i) \, | \, i = 1, \dots, m \right\}$$
@@ -225,21 +222,21 @@ $$\ell_i(\bw) := \ell(f_{\bw}(\bx_i), y_i).$$
 
 \begin{definition}
   The empirical loss function for the first $k$ elements is:
-  $$\mathcal{L}_k(\bw) = \frac1M \sum\limits_1^k \ell_i(\bw), \,\, \mathcal{L}(\bw) := \mathcal{L}_m(\bw).$$
+  $$\cL_k(\bw) = \frac1M \sum\limits_1^k \ell_i(\bw), \,\, \cL(\bw) := \cL_m(\bw).$$
 \end{definition}
 
 Thus, the difference between losses for neighbouring samplem sizes is:
-$$\mathcal{L}_{k}(\bw) - \mathcal{L}_{k-1}(\bw) = \frac{\ell_{k}(\bw) - \mathcal{L}_{k-1}(\bw)}{k}.$$
+$$\cL_{k+1}(\bw) - \cL_{k}(\bw) = \frac{\ell_{k}(\bw) - \cL_{k-1}(\bw)}{k}.$$
 
 \begin{definition}
-  Let the Hessian of $\mathcal{L}_k(\bw)$ be:
-  $$\bH_k(\bw) = \nabla^2_{\bw}\mathcal{L}_k(\bw) = \frac1k \sum\limits_1^k \nabla^2_{\bw} \ell_i(\bw).$$
+  Let the Hessian of $\cL_k(\bw)$ be:
+  $$\bH_k(\bw) = \nabla^2_{\bw}\cL_k(\bw) = \frac1k \sum\limits_1^k \nabla^2_{\bw} \ell_i(\bw).$$
 \end{definition}
 
 \begin{definition}
   To calculate the overall loss landscape changing, one has to integrate the absolute difference for the entire parameter space.
   We define $\mathbf{\Delta}$-\textbf{function} (delta-function) as:
-  $$\Delta_{k} = \int \left( \mathcal{L}_{k}(\bw) - \mathcal{L}_{k-1}(\bw) \right)^2 p(\bw) dw,$$
+  $$\Delta_{k} = \int \left( \cL_{k+1}(\bw) - \cL_{k}(\bw) \right)^2 p(\bw) dw,$$
   where $p(\bw)$ describes the priority of the particular parameter points so we can make $p(\bw)$ have higher values
   next to the local minima.
 \end{definition}
@@ -257,45 +254,92 @@ We interested in convergence of this value and properties of loss function when 
 \subsection{Assumptions}
 
 \begin{assumption}
-  Let $\bw^*$ be the local minimum of both $\mathcal{L}_{k-1}(\bw)$ and $\mathcal{L}_{k}(\bw)$.
-  Thus, $$\nabla \mathcal{L}_{k-1}(\bw^*) = \nabla \mathcal{L}_{k}(\bw^*) = 0.$$
+  Let $\bw^*$ be the local minimum of both $\cL_{k-1}(\bw)$ and $\cL_{k}(\bw)$.
+  Thus, $$\nabla \cL_{k+1}(\bw^*) = \nabla \cL_{k}(\bw^*) = 0.$$
 \end{assumption}
 
 This assumption allows us to explore the behavior and the geometry of the loss function landscape at only one point.
 
-Furthermore, using second-order Taylor's approximation for $\mathcal{L}_{k}(\bw)$ at $\bw^*$ we get:
-$$\mathcal{L}_{k}(\bw) \approx \mathcal{L}_{k}(\bw^*) + \frac12 (\bw - \bw^*)^{\T} \bH_k(\bw^*)
-  (\bw - \bw^*)$$
+Furthermore, using second-order Taylor's approximation for $\cL_{k}(\bw)$ at $\bw^*$ we get:
+$$\cL_{k}(\bw) \approx \cL_{k}(\bw^*) + \frac12 (\bw - \bw^*)^{\T} \bH_k(\bw^*)(\bw - \bw^*)$$
+
+\begin{assumption}
+  We can assume that $\bw^*$ is a local minimizer, so that $\cL_{k+1}(\bw^*) = \cL_k(\bw^*)$.
+\end{assumption}
 
 \begin{assumption}
   We can assume parameters $\bw$ to be random, which will lead to quite natural condition: $p(\bw)$ can be even a prior
   distribution of $\bw$, so:
-  $$\Delta_{k} = \mathbb{E}_{p(\bw)} \left( \mathcal{L}_{k}(\bw) - \mathcal{L}_{k-1}(\bw)
-    \right)^2 = \mathbb{D} \left( \mathcal{L}_{k}(\bw) - \mathcal{L}_{k-1}(\bw) \right) + \left( \mathbb{E} \left(
-      \mathcal{L}_{k}(\bw) - \mathcal{L}_{k-1}(\bw) \right) \right)^2$$
+  $$\Delta_{k} = \mathbb{E}_{p(\bw)} \left( \cL_{k+1}(\bw) - \cL_{k}(\bw) \right)^2 = $$
+  $$\mathbb{D}_{p(\bw)} \left( \cL_{k+1}(\bw) - \cL_{k}(\bw) \right) + \left( \mathbb{E}_{p(\bw)} \left(
+      \cL_{k+1}(\bw) - \cL_{k}(\bw) \right) \right)^2$$
 \end{assumption}
 
-\section{Method}\label{sec:method}
+\section{Method: Projection onto Dominant Eigen-Directions and Loss Landscape Approximation}
 
-As the work with the full Hessian is computation complex, let's define a projection of neural network parameters space
-$\Omega$ to a certain subspace $\Theta$. Let $\bP$ be a projection matrix from $\Omega$ to $\Theta$. Let $\btheta$ be
-a projection: $\btheta = \bP\bw$.
+Working with the full Hessian $\mathbf{H}_k(\bw)$ of a neural network is computationally expensive due to the high dimensionality
+of the parameter space $\bOmega$. To overcome this issue, we reduce the complexity by projecting the parameters onto a lower-dimensional
+subspace. This subspace is spanned by the $d$ dominant eigenvectors of the Hessian evaluated at the local minimum $\bw^*$, i.e.,
+$\mathbf{H}_k(\bw^*)$.
 
-Let $\mathbf{V} = \{\mathbf{e}_1, \dots, \mathbf{e}_d\}$ be eigenvectors of $\mathbf{H}$. We select $d$ of them and project parameters space
-into a subspace on these $d$ vectors. These vectors should represent maximum eigenvalues of $\mathbf{H}$ as these directions
-have the most impact to the loss function difference.
-\section{Experiments}\label{sec:exp}
+The core idea behind the projection is that, in neural network models, the Hessian has a low effective rank according to
+\cite{sagun2018empirical}: only a few eigenvalues are significantly larger than zero, while the majority are negligibly small.
+As a result, the directions corresponding to these small eigenvalues contribute little to the variation of the loss
+function. By keeping only the eigen-directions associated with the largest eigenvalues, we obtain a compact but informative
+representation of the loss landscape that captures the most influential directions of curvature.
 
-To verify the theoretical estimates obtained, we conducted a detailed empirical study.
-In this section, we present experiments aimed at analyzing how the loss landscape evolves as the size of the training
-set increases.
+For further intuition, we present an experimental result on the plot \ref{fig:evgen} showing the dependence of the eigenvalues
+on their index (ordered in descending order). The dominant eigenvalues were computed iteratively using a method described in
+\cite{hessian-eigenthings}.
+
+\begin{figure}[!htbp]
+  \centering
+  \subfloat{\includegraphics[width=0.74\textwidth]{img/eigenvalues.pdf}}
+  \caption{Dependence of eigenvalues on their index in descending order.}
+  \label{fig:evgen}
+\end{figure}
+
+Concretely, let
+$$\mathbf{V} = \left\{ \mathbf{e}_1, \dots, \mathbf{e}_d \right\}, \qquad \bP = \left[ \mathbf{e}_1, \dots, \mathbf{e}_d \right],$$
+be the corresponding eigenvectors (forming an eigenbasis) with the largest eigenvalues. Then, we represent the network parameters as
+$$\bw = \bw^* + \bP\,\btheta,$$ where $\btheta \in \mathbb{R}^d$ denotes the coordinates in this reduced subspace. This representation
+allows us to focus on the most significant directions, leading to a more tractable approximation of the loss landscape.
+
+Substituting $\bw = \bw^* + \bP\,\btheta$ into the second-order Taylor approximation of the loss function, we obtain
+$$\cL_k\bigl(\bw^* + \bP\,\btheta\bigr) \approx \cL_k\bigl(\bw^*\bigr) + \frac{1}{2}\,\btheta^{\T} \left( \bP^{\T}\,
+  \bH_k\bigl(\bw^*\bigr)\,\bP \right) \btheta.$$
+Define
+$$\bLambda_k(\bw) := \bP^{\T}\,\bH_k(\bw)\,\bP, \quad \text{so that} \quad \bLambda_k(\bw^*) =
+  \operatorname{diag}\bigl(\lambda_k^1,\dots,\lambda_k^d\bigr),$$
+where $\lambda_k^1, \dots, \lambda_k^d$ are the top $d$ eigenvalues of $\bH_k(\bw^*)$. Thus, the loss is approximated as
+$$\cL_k\bigl(\bw^* + \bP\,\btheta\bigr) \approx \cL_k\bigl(\bw^*\bigr) + \frac{1}{2}\,\btheta^{\T} \bLambda_k \btheta.$$
+
+Similarly, for the loss computed on $k+1$ samples, we have
+$$\cL_{k+1}\bigl(\bw^* + \bP\,\btheta\bigr) \approx \cL_{k+1}\bigl(\bw^*\bigr) + \frac{1}{2}\,\btheta^{\T} \bLambda_{k+1} \btheta.$$
+
+\begin{theorem}
+  (Of Delta-function) Let $p(\btheta)$ be a probability distribution over the reduced subspace (for instance, a Gaussian distribution), with mean
+  $\bm = \mathbf{0}$ and covariance $\bSigma = \mathbb{D}_{p(\btheta)}\bigl(\btheta\bigr).$ Then,
+  $$\Delta_k \;\approx\; \frac{\sigma^4}{4} \left( 2 \sum_{i=1}^{d}\left( \lambda_{k+1}^i - \lambda_{k}^i \right)^2 + \left(
+      \sum_{i=1}^{d}\left( \lambda_{k+1}^i - \lambda_{k}^i \right) \right)^2 \right).$$
+\end{theorem}
+
+Assuming $\mathbb{E}_{p(\btheta)}(\btheta) = \mathbf{0}$ is natural when centering the sampling distribution at the minimum.
+
+The result shown on this theorem and applied to our $p(\btheta)$ can estimate the $\Delta_k$ function so we can seay when the dataset
+size will be sufficient.
+
+\section{Experiments}
+To verify the theoretical estimates, in this section, we present experiments aimed at analyzing how the loss landscape evolves as
+the size of the training set increases.
 
 \paragraph{Data.}
-We use the MNIST dataset, which consists of $60{,}000$ training images and $10{,}000$ test
+We use the MNIST \cite{deng2012mnist} and Fashion-MNIST \cite{xiao2017fashion} dataset, which consists of $60{,}000$
+training images and $10{,}000$ test
 images of handwritten digits (0--9). Each image is $28\times28$ pixels, grayscale.
 
 \paragraph{Model Architecture.}
-We use the following neural network models and preparations:
+We use the following neural network model structures and fixations:
 \begin{itemize}
   \item A multilayer perceptron (MLP) with different number of hidden layers (ReLU activations).
   \item The choice of architecture remains consistent across all experiments.
@@ -304,74 +348,196 @@ We use the following neural network models and preparations:
 
 The first two are preliminary experiments, conducted as illustrative examples on the MNIST dataset,
 while the others focusing on Hessian-based projections and show connections between eigenvalues and loss function convergence.
-That is our primary aim --- to check our theoretical estimates in-deal.
-
+That is our primary aim --- to check our theoretical estimates in-deal. All experiments are avaliable at our github repository.
 
 \subsection{Visualizing the Loss Landscape in a Random Two-Dimensional Subspace}
 The idea of this initial experiment is to get an intuitive sense of how the loss function’s landscape shifts with
-different training-set sizes. To do this, we pick two random directions $\mathbf{v_1}$ and $\mathbf{v_2}$ in the parameter
+different training-set sizes. To do this, we pick two random directions $\mathbf{v}_1$ and $\mathbf{v}_2$ in the parameter
 space and project the network’s parameters onto the subspace they span.
 
+In order to visualize how the loss function behaves as the model parameters change along two chosen random directions, we compute loss
+values over a two-dimensional grid in the projected parameter space. Recall that, in our setup, the loss function is defined as
+$$L_k(w)=\frac{1}{k}\sum_{i=1}^{k}\ell_i(w),$$
+where $\ell_i(w)$ is the loss contribution of the $i$th sample.
 
-\paragraph{Procedure}
+The procedure for computing the loss values and visualizing them in 3D is as follows:
+
 \begin{enumerate}
-  \item \textbf{Training on different sizes.} Train a neural network on increasingly larger subsets.
-  \item \textbf{Parameter snapshot.} After training, fix the final (or near-final) weights $\mathbf{w}^*$.
-  \item \textbf{Subspace grid.} Form a grid of points $\{\mathbf{w}^* + \alpha \mathbf{v}_1 + \beta \mathbf{v}_2\}$ around $\mathbf{w}^*$, where $\alpha$ and $\beta$ vary in a chosen range.
-  \item \textbf{Loss evaluation.} Compute and plot the loss at each grid point, producing a 3D visualization.
+  \item \textbf{Fix a base model and directions.}
+        Begin with a fixed trained on the same dataset neural network model.
+        Also, obtain two parameter directions $\btheta = \{\bv_1$, $\bv_2$\} that will be used to explore the parameter space.
+        These directions are vectors in the model's parameter space.
+
+  \item \textbf{Grid Construction.}
+        We generate a two-dimensional grid of coefficient pairs $(\alpha,\beta)$ using a fixed step size within the interval $[-1,1]$.
+        These coefficients will scale two pre-computed directions in the parameter space. The grid is formed by taking the Cartesian product.
+
+  \item \textbf{Loss Calculation on the Grid.}
+        For each grid point $(\alpha,\beta)$, a new set of parameters is created by forming a linear combination of the two directions:
+        $$
+          \btheta = \alpha\cdot\bv_1 + \beta\cdot\bv_2.
+        $$
+        A temporary model is then initialized with these shifted parameters, and combined with the base model via straight sum:
+        $$\bw = \bw^* + \btheta$$.
+        The base model's parameters are kept fixed (close to $\mathbf{w}^*$) while applying these perturbations.
+        Using a loss function evaluation, the losses are computed for each grid point.
+
+  \item \textbf{Computation of Aggregated Loss Measures.}
+        The loss values for each grid point are aggregated in two ways:
+        \begin{itemize}
+          \item The mean loss $\cL_k$ computed over a specified number of samples is used to construct the loss landscape.
+          \item Similarly, the mean loss $\cL_{k+1}$ for a larger sample size is computed, and the squared difference
+                $$\left(\mathcal{L}_{\text{k+1}} - \mathcal{L}_{\text{k}}\right)^2$$
+                is evaluated at each grid point.
+        \end{itemize}
+
+  \item \textbf{3D Surface Visualization.}
+        Two 3D surface plots are created and placed side by side:
+        \begin{itemize}
+          \item \emph{Left Plot:} Displays the loss landscape $\mathcal{L}_{k}(\btheta)$, where the $x$ and $y$ axes correspond to the grid
+                coordinates (the scaling coefficients along the two directions) and the $z$-axis shows the average loss value.
+          \item \emph{Right Plot:} Shows the squared loss difference, $\left(\mathcal{L}_{k+1}(\btheta)-\mathcal{L}_{k}(\btheta)\right)^2$.
+                This plot emphasizes regions where an additional data sample induces substantial changes in the loss.
+        \end{itemize}
 \end{enumerate}
 
-For smaller $N$, the landscape exhibits sharper fluctuations. As $N$ grows, the landscape often appears smoother and more stable.
-
 \begin{figure}[!htbp]
-  \hspace*{-11.5cm}
-  \subfloat{\includegraphics[width=2\textwidth]{img/Ls_16.pdf}}
-  \caption{Loss function landscape}
-  \label{fig:base_loss}
+  \hspace*{-2.2cm}
+  \subfloat{\includegraphics[width=1.3\textwidth]{img/loss_random_1_2.pdf}}
+  \caption{Loss function landscape for small $k$}
+  \label{fig:loss_random_small}
 \end{figure}
 
 \begin{figure}[!htbp]
-  \hspace*{-11.5cm}
-  \subfloat{\includegraphics[width=2\textwidth]{img/Ld_10.pdf}}
-  \caption{Loss function difference $(\mathcal{L}_{k} - \mathcal{L}_{k-1})^2$ landscape}
-  \label{fig:base_loss_diff}
+  \hspace*{-2.2cm}
+  \subfloat{\includegraphics[width=1.3\textwidth]{img/loss_random_-2_-1.pdf}}
+  \caption{Loss function landscape for maximum $k$}
+  \label{fig:loss_random_big}
 \end{figure}
+
+Figures \ref{fig:loss_random_small} and \ref{fig:loss_random_big} shows a set of four 3D plots that illustrate the loss
+landscape and the corresponding loss difference for various sample sizes. In these figures, the top two plots correspond to very small
+training sets, while the bottom two plots display the loss landscape and its squared difference for the maximum available dataset size.
+
+\paragraph{Loss Landscape for Small Sample Sizes}
+In the upper plots \ref{fig:loss_random_small} ($k=1$), the loss landscape exhibits sharp variations and high-contrast peaks.
+These characteristics indicate that when training with an extremely limited number of samples, the model is highly sensitive to small
+perturbations in the parameter space. In such cases, even a slight change in parameters leads to significant fluctuations in the loss
+function. This is further supported by the upper plot of the squared loss difference,
+$$\left(\cL_k(\btheta)-\cL_{k}(\btheta)\right)^2,$$
+which shows large local differences that reflect high instability in the optimization landscape.
+
+\paragraph{Loss Landscape for Maximum Dataset Size}
+In contrast, the lower plots \ref{fig:loss_random_big} correspond to training with the maximum available dataset size. Here, the loss
+surface appears much smoother and more regular. The sharp peaks have diminished considerably, and the surface displays a gradual slope.
+This smoothing of the loss landscape indicates that as more data become available, the model's local optimum stabilizes. Likewise, the
+squared loss difference in the lower plot is much smaller, implying that the addition of extra samples produces only minor adjustments
+to the loss function. Such convergence suggests that the network has captured the underlying data structure adequately, and that further
+increases in the training sample size yield diminishing returns in terms of reshaping the loss landscape.
 
 \subsection{Visualizing delta-function}
 
-Now we dig deeper and visualize our $\Delta_k$ function to clearly understand the difference in the loss function when
-moving from a model trained on $k-1$ samples to one trained on $k$ samples. To do this we sample a bunch of random gaussian
-vectors (all components are normally distributed) and calculate a
-math expectation of modulus of the loss function difference.
-Directly computing this expectation over the entire distribution of random directions $\mathbf{d}$
-is impossible, so we employ a Monte Carlo approximation: using Monte-Carlo method (we take the mean value of loss function
-on sampled gaussian shifted points):
+To further analyze the convergence of the loss landscape, we also evaluate and visualize the $\Delta_k$ function. This function 
+quantifies the change in the loss function when transitioning from a model trained on $k$ samples to one trained on $k+1$ samples. 
+Directly computing the expectation
+$$\Delta_k = \mathbb{E}_{p(\bw)}\left( \cL_{k+1}(\bw) - \cL_{k}(\bw) \right)^2$$
+over the entire distribution of parameter shifts is computationally infeasible. Therefore, we employ a Monte Carlo approximation, 
+where we average the loss differences computed on a set of random Gaussian perturbations. This Monte Carlo approach is straightforward 
+to implement and does not require explicit knowledge of the full distribution of parameter shifts.
 
-$$\Delta_k = \mathbb{E}_{p(\bw)} \left( \mathcal{L}_{k}(\bw) - \mathcal{L}_{k-1}(\bw) \right)^2 \approx
-  \frac{1}{k} \sum_{t=1}^{k} \left( \mathcal{L}_k(\mathbf{w}^* + \mathbf{d}_t) - \mathcal{L}_{k-1}(\mathbf{w}^* + \mathbf{d}_t) \right)^2$$
-
-where $\mathbf{d}_t \sim \mathcal{N}(0,I_d)$ are $K$ random gaussian samples drawn from a multivariate normal distribution
-with zero mean and identity covariance from a subspace of rank $d$. Specifically, we proceed as follows:
+The overall procedure is as follows:
 
 \begin{enumerate}
-  \item \textbf{Sampling Directions.} Generate $K$ independent directions $\mathbf{d}_1, \dots, \mathbf{d}_M$
-        from $\mathcal{N}(0,I_d)$.
-  \item \textbf{Decreasing multidimension.} Project the network’s parameters onto the subspace they span.
-  \item \textbf{Loss Evaluation.} For each direction $\mathbf{d}_t$, evaluate the loss at
-        $\mathbf{w}^* + \mathbf{d}_t$ and
-        $$\left( \mathcal{L}_{k}(\bw + \mathbf{d}_t) - \mathcal{L}_{k-1}(\bw + \mathbf{d}_t) \right)^2 $$
-  \item \textbf{Averaging.} Average these values values over $k = 1, \dots, K$ to approximate $\Delta_k$.
+  \item \textbf{Fixing a model and sampling Directions.}
+        Begin with a fixed trained on the same dataset neural network model. Generate $K$ independent random directions from a
+        multivariate normal distribution
+        $$\btheta \sim \mathcal{N}(\bm, \sigma^2 \bI),$$
+        where $\bm = \mathbf{0}$ and $\sigma$ as variance. These $K$ samples serve as the shifts in the reduced parameter space.
+
+  \item \textbf{Parameter Snapshot.}\\
+        For each random direction, form a perturbed parameter vector around the base parameter $\mathbf{w}^*$:
+        $$\mathbf{w}^{(t)} = \mathbf{w}^* + \btheta^{(t)}, \quad t=1,\dots,K.$$
+        The base model's parameters are kept fixed (close to $\mathbf{w}^*$) while applying these perturbations.
+
+  \item \textbf{Loss Evaluation.}\\
+        For each perturbed parameter $\mathbf{w}^{(t)}$, compute the loss values
+        $$\cL_{k+1}(\mathbf{w}^{(t)}) \quad \text{and} \quad \cL_{k}(\mathbf{w}^{(t)}),$$
+        and then calculate the squared loss difference
+        $$\left( \cL_{k+1}(\mathbf{w}^{(t)}) - \cL_{k}(\mathbf{w}^{(t)}) \right)^2.$$
+
+  \item \textbf{Averaging.}\\
+        Average the squared loss differences over the $K$ samples to obtain the Monte Carlo estimate:
+        $$\Delta_k \approx \frac{1}{K} \sum_{t=1}^{K} \left( \cL_{k+1}(\mathbf{w}^{(t)}) - \cL_{k}(\mathbf{w}^{(t)}) \right)^2.$$
+        Increasing $K$ results in a more reliable estimate of the expected loss difference.
+
+  \item \textbf{Visualization.}\\
+        The computed $\Delta_k$ values are then visualized as follows:
+        \begin{itemize}
+          \item The left plot displays the evolution of $\Delta_k$ across different sample sizes. The $x$-axis represents the sample index $k$, while the $y$-axis shows the corresponding $\Delta_k$.
+          \item The right plot shows the product $\Delta_k \cdot k^2$ (or another suitable scaling), which highlights the convergence rate of the loss differences as the dataset size increases.
+        \end{itemize}
+        These 2D plots are generated side-by-side to facilitate a comparative analysis of the convergence behavior.
+
 \end{enumerate}
 
-By increasing $K$, we obtain a more reliable estimate of the expected difference in loss landscapes.
-This Monte Carlo approach is straightforward to implement and does not require explicit knowledge of the underlying loss
-function's distribution.
+\begin{figure}[!htbp]
+  \hspace*{-2.8cm}
+  \subfloat{\includegraphics[width=1.35\textwidth]{img/delta_random_sigma_2_64.pdf}}
+  \caption{Delta function landscape for different variation}
+  \label{fig:delta_random_sigma}
+\end{figure}
 
-The $\Delta$-function generally decreases as $N$ increases, suggesting that the landscape differences between neighbouring
-sizes become smaller.
-Beyond a certain point, $\Delta$-values are nearly negligible, indicating that adding more data has minimal impact on
-the local landscape in these directions.
+\begin{figure}[!htbp]
+  \hspace*{-2.8cm}
+  \subfloat{\includegraphics[width=1.35\textwidth]{img/delta_random_dim_1_64.pdf}}
+  \caption{Delta function landscape for different number of dimensions}
+  \label{fig:delta_random_dim}
+\end{figure}
 
+\begin{figure}[!htbp]
+  \hspace*{-2.8cm}
+  \subfloat{\includegraphics[width=1.35\textwidth]{img/delta_random_num_samples_1_2.pdf}}
+  \caption{Delta function landscape for different number of samples ($K$)}
+  \label{fig:delta_random_samples}
+\end{figure}
+
+
+Figures \ref{fig:delta_random_sigma}, \ref{fig:delta_random_dim}, and \ref{fig:delta_random_samples} present the behavior of the function
+$$\Delta_k \;=\; \mathbb{E}_{p(\bw)}\bigl[L_{k+1}(\bw) - L_k(\bw)\bigr]^2$$
+under varying parameters of the Monte Carlo sampling and the subspace dimension used for projection. Each figure focuses on a 
+specific comparison: \ref{fig:delta_random_sigma} --- different values of the Gaussian variance $\sigma$, 
+\ref{fig:delta_random_sigma} -- different sizes of the projected subspace (i.e., different dimensions), and 
+\ref{fig:delta_random_sigma} different numbers of random samples~$K$ in the Monte Carlo algorithm.
+
+\paragraph{Comparing Different Variances \texorpdfstring{$\sigma$}{sigma}}
+Figure~\ref{fig:delta_random_sigma} shows how the $\Delta_k$ curves evolve when using various values of $\sigma$ for the random 
+directions. A larger $\sigma$ increases the magnitude and frequency of spikes in the curves. Intuitively, when the Gaussian sampling 
+is more spread out (i.e., we sample directions farther from the base parameter $\bw^*$), the resulting perturbations can induce more 
+significant changes in the loss. Thus, $\Delta_k$ can become highly volatile. By contrast, a smaller $\sigma$ keeps the sampled points 
+closer to the minimum, making the changes in loss more localized and stable. In practice, choosing too large a $\sigma$ can obscure the 
+structure around $\bw^*$ with excessive noise, while a smaller $\sigma$ focuses on the region near the local minimum, highlighting 
+more relevant variations in the loss landscape.
+
+\paragraph{Comparing Different Subspace Dimensions}
+Figure~\ref{fig:delta_random_dim} compares the $\Delta_k$ function for different projection dimensions. 
+As the dimension of the subspace grows, the curves tend to exhibit fewer extreme spikes. This suggests that by considering more 
+directions in the parameter space, the Monte Carlo estimation captures a broader view of potential perturbations. Consequently, 
+individual outliers affect the overall measure less dramatically, leading to more stable curves. 
+But a plenty of directions have negligible eigenvalues and thus minimal impact on the loss, so this does not necessarily 
+mean we should always use a high-dimensional subspace. The idea of focusing on the dominant directions 
+(with the largest eigenvalues) helps strike a balance between computational feasibility and capturing the most significant variations 
+in the loss function.
+
+\paragraph{Comparing Different Numbers of Random Samples \texorpdfstring{$K$}{K}}
+Figure~\ref{fig:delta_random_samples} illustrates the effect of varying $K$, the number of random Gaussian samples used for Monte Carlo 
+estimation. With a larger $K$, the curves become less noisy and more stable. This is because the average
+$$\frac{1}{K} \sum_{t=1}^{K} \Bigl(\cL_{k+1}(\bw^{(t)}) - \cL_k(\bw^{(t)})\Bigr)^2$$
+is taken over a greater number of directions, thereby reducing variance in the estimate. 
+
+In addition, the right-side plots in these figures show the scaled quantity $\Delta_k \cdot k^2$, revealing an approximate $1/k$ decay 
+for the unscaled $\Delta_k$. This suggests that the incremental change in the loss function diminishes on the order of $1/k$ as $k$ 
+increases, confirming that once a sufficiently large dataset is reached, additional samples have only a minor impact on the local loss 
+landscape.
 
 \noindent
 \textbf{Conclusion from Preliminary Experiments.}
@@ -405,14 +571,6 @@ we can more precisely measure how the landscape the loss surface changes as $k$ 
   \item By applying experiments we check our calculations above on the reality.
 \end{itemize}
 
-\begin{figure}[!htbp]
-  \centering
-  \subfloat{\includegraphics[width=1\textwidth]{img/D_32.pdf}}\\
-  \caption{$\Delta$-function visualization. `Sigma` parameter refers to the variance of sampled gaussian vectors, `dim'
-    refers to the rank of the subspace.}
-  \label{fig:base_delta}
-\end{figure}
-
 
 
 \section{Discussion}\label{sec:disc}
@@ -433,10 +591,49 @@ TADAAA!
 
 \newpage
 \appendix
-\section{Appendix / supplemental material}\label{app}
+\section{Appendix}
 
-\subsection{Additional experiments / Proofs of Theorems}\label{app:exp}
+\subsection{Proof of the Theorem 1}
 
-TADAAA!
+\begin{proof}
+  The difference between the two losses is given by
+  $$\cL_{k+1}(\bw) - \cL_k(\bw) \approx \Bigl[\cL_{k+1}(\bw^*) - \cL_k(\bw^*)\Bigr] + \frac{1}{2}\,\btheta^{\T}
+    \Bigl( \bLambda_{k+1} - \bLambda_k \Bigr) \btheta.$$
+
+  Now, we apply a second assumption regarding the $\Delta_k$ function in the context of the projection. Let $p(\btheta)$ be a probability
+  distribution over the reduced subspace (for instance, a Gaussian distribution), with mean
+  $$\bm = \mathbb{E}_{p(\btheta)}\bigl(\btheta\bigr)$$ and covariance $$\bSigma = \mathbb{D}_{p(\btheta)}\bigl(\btheta\bigr).$$
+  Then, following \cite{petersen2012matrix} (see page 35), one can show that
+  $$\mathbb{E}_{p(\btheta)} \Bigl[ \cL_{k+1}(\bw) - \cL_k(\bw) \Bigr] \approx \Bigl[ \cL_{k+1}(\bw^*) - \cL_k(\bw^*)\Bigr] +
+    \frac{1}{2} \Bigl( \mathrm{Tr}(\bA\,\bSigma) + \bm^{\T}\,\bA\,\bm \Bigr),$$ where $$\bA := \bLambda_{k+1}(\bw^*) - \bLambda_k(\bw^*).$$
+  Note that $\mathrm{Tr}(\bLambda_k) = \sum_{i=1}^{d} \lambda_k^i$ and, consequently,
+  $$\mathrm{Tr}(\bA) = \sum_{i=1}^{d} \lambda_{k+1}^i - \sum_{i=1}^{d} \lambda_k^i.$$
+
+  Assume further that the distribution in the reduced space is given by
+  $$\btheta \sim \mathcal{N}\bigl(\bm,\sigma^2 \bI\bigr),$$
+  so that $\bSigma = \sigma^2 \bI$. Then, according to \cite{petersen2012matrix} (page 43), the variance of the loss difference is
+  $$\mathbb{D}_{p(\btheta)}\Bigl[ \cL_{k+1}(\bw) - \cL_k(\bw) \Bigr] =\frac{1}{4} \left( 2 \sigma^4\,\mathrm{Tr}(\bA^2) +
+    4 \sigma^2\,\bm^{\T}\,\bA^2\,\bm \right).$$
+
+  Finally, the overall measure $\Delta_k$ is defined as
+  $$\Delta_{k} \;=\; \mathbb{D}_{p(\btheta)}\Bigl[ \cL_{k+1}(\bw) - \cL_k(\bw) \Bigr] + \left( \mathbb{E}_{p(\btheta)}
+    \Bigl[ \cL_{k+1}(\bw) - \cL_k(\bw) \Bigr] \right)^{2}\,.$$
+  Substituting the above expressions, we have
+  $$\Delta_k \;\approx\; \frac{1}{4}\left( 2 \sigma^4\,\mathrm{Tr}(\bA^2) + 4 \sigma^2\,\bm^{\T}\,\bA^2\,\bm \right) + \Bigl(\cL_{k+1}(\bw^*) -
+    \cL_k(\bw^*)\Bigr)^2$$ $$\quad\quad +\; 2\Bigl(\cL_{k+1}(\bw^*) - \cL_k(\bw^*)\Bigr)\cdot \frac{1}{2}\Bigl( \mathrm{Tr}(\bA\,\bSigma) +
+    \bm^{\T}\,\bA\,\bm \Bigr) +\; \frac{1}{4}\Bigl( \mathrm{Tr}(\bA\,\bSigma) + \bm^{\T}\,\bA\,\bm \Bigr)^{2}\,.$$
+
+  Assuming that $\bw^*$ is a local minimizer and remembering that $\bm = \mathbf{0}$, the above expression simplifies to
+  $$\Delta_k \;\approx\; \frac{1}{4}\left( 2 \sigma^4\,\mathrm{Tr}(\bA^2) \right) + \frac{1}{4}\Bigl( \mathrm{Tr}(\bA\,\bSigma) \Bigr)^2\,.$$
+  Since $\bSigma = \sigma^2 \bI$, it follows that
+  $$\mathrm{Tr}(\bA\,\bSigma) = \sigma^2\,\mathrm{Tr}(\bA),$$
+  and therefore,
+  $$\Delta_k \;\approx\; \frac{\sigma^4}{4} \left( 2\,\mathrm{Tr}(\bA^2) + \Bigl(\mathrm{Tr}(\bA)\Bigr)^2 \right).$$
+  Recalling that $$\mathrm{Tr}(\bA) = \sum\limits_{i=1}^{d}\left( \lambda_{k+1}^i - \lambda_{k}^i \right)$$ and
+  $$\mathrm{Tr}(\bA^2) = \sum_{i=1}^{d}\left( \lambda_{k+1}^i - \lambda_{k}^i \right)^2,$$
+  we obtain
+  $$\Delta_k \;\approx\; \frac{\sigma^4}{4} \left( 2 \sum_{i=1}^{d}\left( \lambda_{k+1}^i - \lambda_{k}^i \right)^2 + \left(
+      \sum_{i=1}^{d}\left( \lambda_{k+1}^i - \lambda_{k}^i \right) \right)^2 \right).$$
+\end{proof}
 
 \end{document}

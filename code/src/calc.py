@@ -6,9 +6,6 @@ from tqdm.auto import tqdm
 
 
 def inplace_sum_models(model1, model2, coef1, coef2):
-    """
-        return model1 := model1 * coef1 + model2 * coef2
-    """
     final = model1
     for (name1, param1), (name2, param2) in zip(final.state_dict().items(), model2.state_dict().items()):
         transformed_param = param1 * coef1 + param2 * coef2
@@ -23,9 +20,6 @@ def calc_sum_models(model1, model2, coef1, coef2):
 
 
 def init_from_params(model, direction):
-    """
-        inplace init model from direction as from parameters()
-    """
     for p_orig, p_other in zip(model.parameters(), direction):
         with torch.no_grad():
             p_orig.copy_(p_other)
@@ -61,10 +55,6 @@ class LossCalculator:
         self.directions = []
 
     def calc_losses(self, grid):
-        """
-            grid: 2d from [-1, 1]*[-1, 1]
-        """
-
         if len(self.directions) < 2:
             self.directions = self.directions + self.core.get(2 - len(self.directions))
 
@@ -83,11 +73,6 @@ class LossCalculator:
 
 
 class DeltaCalculator:
-    r"""
-        Base class for calc delta
-        delta_k = (L_{k+1} - L_k)
-    """
-
     def __init__(self, model, criterion, dataloader, core):
         self.model = model
         self.core = core
@@ -110,12 +95,7 @@ class DeltaCalculator:
 
     def calc_deltas(self, mode_params, num_samples=10):
         diff_lists = self.calc_diff_lists(mode_params, num_samples)
-        if mode_params['estim_func'] == 'square':
-            diff_lists = diff_lists ** 2
-        elif mode_params['estim_func'] == 'abs':
-            diff_lists = np.abs(diff_lists)
-        elif mode_params['estim_func'] is None:
-            pass
+        diff_lists = diff_lists ** 2
         deltas = np.mean(diff_lists, axis=0)
         return deltas
 

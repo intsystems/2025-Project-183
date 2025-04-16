@@ -75,6 +75,6 @@ def train(model, criterion, dataloader, optimizer, num_epochs=10, ret=False, log
 
         avg_loss = running_loss / batches_count
         if log:
-            print(f"Epoch [{epoch + 1}/{num_epochs}]: loss = {avg_loss:.4f}")
+            print(f"Epoch [{epoch}/{num_epochs}]: loss = {avg_loss:.4f}")
 
     return losses if ret else None
