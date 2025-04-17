@@ -187,11 +187,11 @@ and visualize when the loss landscape stabilizes as new data are added.
 
 \subsection{General notation}
 
-We consider a $K$-class classification problem. Let $\bx \in \bX$ be an input and $y \in \mathcal Y = \{1,\dots,K\}$ its label. A
-neural network with parameters $\bw \in \bOmega \subset \mathbb R^P$ defines a mapping $f_{\bw} : \bX \to \mathbb R^K$. Given a dataset
+We consider a $S$-class classification problem. Let $\bx \in \bX$ be an input and $y \in \mathcal Y = \{1, \dots, S\}$ its label. A
+neural network with parameters $\bw \in \bOmega \subset \mathbb R^P$ defines a mapping $f_{\bw} : \bX \to \mathbb R^S$. Given a dataset
 $$
   \mathcal D =
-  \{(\bx_i, y_i)\}_{i=1}^m
+  \{(\bx_i, y_i)\}_{i=1}^N
 $$
 of $m$ i.i.d. samples, and a per-sample loss $\ell \bigl( f_{\bw}(\bx_i), y_i \bigr)$ (e.g. cross–entropy), we define
 $$
@@ -205,7 +205,7 @@ $$
     \cL_k(\bw) =
     \frac1k \sum_{i=1}^k \ell_i(\bw),
   $$
-  so that the full-sample loss is $\cL(\bw) = \cL_m(\bw)$.
+  so that the full-sample loss is $\cL(\bw) = \cL_N(\bw)$.
 \end{definition}
 
 A simple telescoping gives the difference
@@ -221,7 +221,7 @@ $$
     \nabla^2_{\bw} \cL_k(\bw) =
     \frac1k \sum_{i=1}^k \nabla^2_{\bw} \ell_i(\bw),
   $$
-  and, similarly, the full-sample Hessian is $\bH(\bw) = \bH_m(\bw) = \nabla^2_{\bw} \cL_m(\bw)$.
+  and, similarly, the full-sample Hessian is $\bH(\bw) = \bH_N(\bw) = \nabla^2_{\bw} \cL_N(\bw)$.
 \end{definition}
 
 To capture the overall change in the landscape when adding one more sample, we introduce a $\Delta$‑function:
@@ -239,10 +239,10 @@ We study the behavior of $\Delta_k$ as $k \to \infty$ and define a threshold:
 \begin{definition}
   Fix a tolerance $\Delta > 0$. The \emph{sufficient sample size} is
   $$
-    k^* =
-    \inf \{ k \mid \forall\, m \ge k : \; \Delta_m < \Delta\}.
+    K =
+    \inf \{ k \mid \forall\, k' \ge k : \; \Delta_{k'} < \Delta\}.
   $$
-  When $k \ge k^*$, adding further samples changes the loss landscape by less than $\Delta$.
+  When $k \ge K$, adding further samples changes the loss landscape by less than $\Delta$.
 \end{definition}
 
 \subsection{Assumptions}
@@ -277,11 +277,11 @@ $$
   $$
     \Delta_k =
     \int \bigl(\cL_{k+1}(\bw)-\cL_k(\bw)\bigr)^2\, p(\bw)\, d\bw =
-    \mathbb{E}_{p(\bw)} \left( \cL_{k+1}(\bw) - \cL_{k}(\bw) \right)^2 =
+    \mathbb{E} \left( \cL_{k+1}(\bw) - \cL_{k}(\bw) \right)^2 =
   $$
   $$
-    \mathbb D_{p(\bw)} \bigl[ \cL_{k+1}(\bw) - \cL_k(\bw) \bigr] +
-    \Bigl( \mathbb E_{p(\bw)} \bigl[ \cL_{k+1}(\bw) - \cL_k(\bw) \bigr] \Bigr)^2.
+    \mathbb D \bigl[ \cL_{k+1}(\bw) - \cL_k(\bw) \bigr] +
+    \Bigl( \mathbb E \bigl[ \cL_{k+1}(\bw) - \cL_k(\bw) \bigr] \Bigr)^2.
   $$
 \end{assumption}
 
@@ -328,7 +328,7 @@ where
 $$
   \bLambda_k =
   \bP^{\T}\, \bH_k(\bw^*)\, \bP =
-  \operatorname{diag} \bigl( \lambda_k^1, \dots, \lambda_k^d \bigr).
+  \operatorname{diag} \bigl( \lambda_k^{(1)}, \dots, \lambda_k^{(d)} \bigr).
 $$
 An identical expansion holds for $\cL_{k+1}$, yielding $\bLambda_{k+1}$ from the Hessian on $k+1$ samples.
 
@@ -337,13 +337,13 @@ An identical expansion holds for $\cL_{k+1}$, yielding $\bLambda_{k+1}$ from the
   $$
     \Delta_k =
     \mathbb E \bigl[ \cL_{k+1}(\bw) - \cL_k(\bw) \bigr]^2 \approx
-    \frac{\sigma^4}{4}\, \Biggl( 2 \sum_{i=1}^d (\lambda_{k+1}^i - \lambda_k^i)^2
-    + \Bigl( \sum_{i=1}^d (\lambda_{k+1}^i - \lambda_k^i) \Bigr)^2 \Biggr).
+    \frac{\sigma^4}{4}\, \Biggl( 2 \sum_{i=1}^d (\lambda_{k+1}^{(i)} - \lambda_k^{(i)})^2
+    + \Bigl( \sum_{i=1}^d (\lambda_{k+1}^{(i)} - \lambda_k^{(i)}) \Bigr)^2 \Biggr).
   $$
 \end{theorem}
 
 \begin{remark}
-  Assuming $\mathbb{E}_{p(\btheta)}(\btheta) = \mathbf{0}$ is natural when centering the sampling distribution at the minimum.
+  Assuming $\mathbb{E}(\btheta) = \mathbf{0}$ is natural when centering the sampling distribution at the minimum.
 \end{remark}
 
 This formula uses only the top $d$ eigenvalues, so it is efficient to compute even for very large models.
@@ -417,25 +417,25 @@ $$
 \begin{figure}[!htbp]
   \hspace*{-2.2cm}
   \subfloat{\includegraphics[width=1.3\textwidth]{img/loss_random_1_2.pdf}}
-  \caption{Loss function landscape for small $k$, projected onto the two random directions.}
+  \caption{$\cL_k$ (left) and $\bigl[ \cL_{k+1}(\btheta) - \cL_k(\btheta) \bigr]^2$ (right) for small $k$, projected onto the two random vectors.}
   \label{fig:loss_random_small}
 \end{figure}
 
 \begin{figure}[!htbp]
   \hspace*{-2.2cm}
   \subfloat{\includegraphics[width=1.3\textwidth]{img/loss_random_-2_-1.pdf}}
-  \caption{Loss function landscape for maximum $k$, projected onto the two random directions.}
+  \caption{$\cL_k$ (left) and $\bigl[ \cL_{k+1}(\btheta) - \cL_k(\btheta) \bigr]^2$ (right) for maximum $k$, projected onto the two random vectors.}
   \label{fig:loss_random_big}
 \end{figure}
 
-\paragraph{Loss Landscape for Small Sample Size}
-In Figure~\ref{fig:loss_random_small} ($k=1$), the loss surface is highly irregular, with sharp peaks and deep valleys.
+\paragraph{Loss Landscape for the Small Dataset}
+In Figure~\ref{fig:loss_random_small}, the loss surface is highly irregular, with sharp peaks and deep valleys.
 This irregularity indicates that with very few training samples, the model is extremely sensitive to small parameter perturbations.
 The squared difference surface also exhibits large spikes, confirming that adding a single data point can cause substantial local changes
 in the loss.
 
-\paragraph{Loss Landscape for Maximum Dataset Size}
-In contrast, Figure~\ref{fig:loss_random_big} (maximum $k$) shows a much smoother loss surface with gentle slopes. The overall loss
+\paragraph{Loss Landscape for the Full Dataset}
+In contrast, Figure~\ref{fig:loss_random_big} shows a much smoother loss surface with gentle slopes. The overall loss
 values are lower --- reflecting the averaging effect of more samples --- and the squared difference surface is correspondingly much smaller.
 This smoothing demonstrates that as the dataset grows, the local optimum stabilizes, and additional samples produce only minor
 adjustments to the loss landscape. Hence, beyond a certain dataset size, further data have negligible impact on the shape of the loss
@@ -446,16 +446,16 @@ surface.
 To study how the loss landscape converges as the dataset grows, we estimate and plot the function
 $$
   \Delta_k =
-  \mathbb{E}_{p(\bw)} \bigl[ \cL_{k+1}(\bw) - \cL_k(\bw) \bigr]^2
+  \mathbb{E} \bigl[ \cL_{k+1}(\bw) - \cL_k(\bw) \bigr]^2
 $$
 via a Monte Carlo approximation using Gaussian perturbations in parameter space. The steps are:
 
 \begin{enumerate}
   \item \textbf{Sample directions.}
-        Starting from a fixed trained model with parameters $\bw^*$, draw $K$ independent random vectors
+        Starting from a fixed trained model with parameters $\bw^*$, draw $T$ independent random vectors
         $$
           \btheta^{(t)} \sim \mathcal{N} (\mathbf 0, \sigma^2 \mathbf I_d), \quad
-          t = 1, \dots, K.
+          t = 1, \dots, T.
         $$
 
   \item \textbf{Perturb parameters.}
@@ -482,7 +482,7 @@ via a Monte Carlo approximation using Gaussian perturbations in parameter space.
         Approximate
         $$
           \Delta_k \approx
-          \frac{1}{K} \sum_{t=1}^K d_t.
+          \frac{1}{T} \sum_{t=1}^T d_t.
         $$
         Increasing $K$ reduces the variance of this estimator.
 
@@ -509,14 +509,14 @@ under different Monte Carlo sampling settings and projection subspace sizes. Eac
 \begin{figure}[!htbp]
   \hspace*{-2.6cm}
   \subfloat{\includegraphics[width=1.35\textwidth]{img/delta_random_sigma_2_64.pdf}}
-  \caption{Delta function landscape varying the Gaussian variance $\sigma$.}
+  \caption{$\Delta_k$ (left) and $\Delta_k \cdot k^2$ (right), varying the Gaussian variance with fixed $d = 2$.}
   \label{fig:delta_random_sigma}
 \end{figure}
 
 \begin{figure}[!htbp]
   \hspace*{-2.6cm}
   \subfloat{\includegraphics[width=1.35\textwidth]{img/delta_random_dim_1_64.pdf}}
-  \caption{Delta function landscape varying the number of dimensions.}
+  \caption{$\Delta_k$ (left) and $\Delta_k \cdot k^2$ (right), varying the subspace dimension with fixed $\sigma = 1$.}
   \label{fig:delta_random_dim}
 \end{figure}
 
@@ -541,7 +541,7 @@ curvature --- to obtain a more precise understanding of when and how the loss su
 \subsection{Moving Forward: Projection onto Dominant Hessian Eigenvectors}
 
 \paragraph{Projection Directions.}
-In the main experiment, we replace random directions with the $d=10$ eigenvectors of the Hessian at the local minimizer $\bw^*$ that
+In the main experiment, we replace random directions with the $d$ eigenvectors of the Hessian at the local minimizer $\bw^*$ that
 correspond to its largest eigenvalues.  Prior work \cite{sagun2018empirical} shows these top modes capture nearly all of the
 non‑negligible curvature, and Figure~\ref{fig:evgen} confirms a rapid eigenvalue decay. Fixing $d=10$ balances computational cost and
 fidelity, and our tests on Fashion‑MNIST and CIFAR demonstrate that this choice suffices even for complex architectures.
@@ -557,28 +557,32 @@ By projecting onto these principal directions, we aim to:
 
 \subsubsection{Visualizing the Loss Landscape}
 
-Figures~\ref{fig:loss_eigen_small} and \ref{fig:loss_eigen_big} display 3D plots of $\cL_k(\btheta)$ (left) and $\bigl[\cL_{k+1}(\btheta)-\cL_k(\btheta)\bigr]^2$ (right), where $\btheta$ varies over the span of the top two Hessian eigenvectors.  The procedure mirrors the random‑direction case but uses these maximally informative axes.
+Figures~\ref{fig:loss_eigen_small} and \ref{fig:loss_eigen_big} display 3D plots of $\cL_k(\btheta)$ (left) and 
+$\bigl[ \cL_{k+1}(\btheta) - \cL_k(\btheta) \bigr]^2$ (right), where $\btheta$ varies over the span of the top two Hessian eigenvectors.
+ The procedure mirrors the random‑direction case but uses these maximally informative axes.
 
 \begin{figure}[!htbp]
   \hspace*{-2.2cm}
   \subfloat{\includegraphics[width=1.3\textwidth]{img/loss_eigen_1_2.pdf}}
-  \caption{Loss landscape $\cL_k$ and squared difference for small $k$, projected onto the top two Hessian eigenvectors.}
+  \caption{$\cL_k$ (left) and $\bigl[ \cL_{k+1}(\btheta) - \cL_k(\btheta) \bigr]^2$ (right) for small $k$, projected onto the top two Hessian eigenvectors.}
   \label{fig:loss_eigen_small}
 \end{figure}
 
 \begin{figure}[!htbp]
   \hspace*{-2.2cm}
   \subfloat{\includegraphics[width=1.3\textwidth]{img/loss_eigen_-2_-1.pdf}}
-  \caption{Loss landscape $\cL_k$ and squared difference for maximum $k$, projected onto the top two Hessian eigenvectors.}
+  \caption{$\cL_k$ (left) and $\bigl[ \cL_{k+1}(\btheta) - \cL_k(\btheta) \bigr]^2$ (right) for maximum $k$, projected onto the top two Hessian eigenvectors.}
   \label{fig:loss_eigen_big}
 \end{figure}
 
-In Figure~\ref{fig:loss_eigen_small} (small $k$, e.g.\ $k=1$), the loss surface projected onto the top two Hessian eigenvectors is
+\paragraph{Loss Landscape for the Small Dataset}
+In Figure~\ref{fig:loss_eigen_small}, the loss surface projected onto the top two Hessian eigenvectors is
 noticeably more structured and less erratic than in the random‐direction case. This confirms that these eigenvectors capture the
 most influential directions of loss variation. The squared‐difference plot also shows larger peaks, indicating that the model is
 highly sensitive to new data along these key axes when $k$ is small.
 
-By contrast, Figure~\ref{fig:loss_eigen_big} (maximum $k$) shows a much smoother loss surface and a greatly reduced squared‐difference.
+\paragraph{Loss Landscape for the Full Dataset}
+By contrast, Figure~\ref{fig:loss_eigen_big} shows a much smoother loss surface and a greatly reduced squared‐difference.
 As the dataset grows, the loss changes less along the principal curvature directions, and the model’s local behavior stabilizes.
 Notably, even at large $k$, the squared difference remains higher than in the random‐direction experiment, providing a practical upper
 bound on landscape fluctuations. These findings reinforce that projecting onto the top eigenvectors effectively reveals the convergence
@@ -589,7 +593,7 @@ behavior of the loss landscape and helps intuitively understand the existence of
 \begin{figure}[!htbp]
   \hspace*{-2.6cm}
   \subfloat{\includegraphics[width=1.35\textwidth]{img/delta_eigen_1_10_64.pdf}}
-  \caption{Delta function landscape}
+  \caption{$\Delta_k$ (left) and $\Delta_k \cdot k^2$ (right)}
   \label{fig:delta_eigen}
 \end{figure}
 
@@ -607,10 +611,10 @@ In this experiment, we compare our Hessian‐based theoretical estimate of $\Del
 We approximate $\Delta_k$ by
 $$
   \Delta_k \approx
-  \frac{\sigma^4}{4}\, \Biggl( 2 \sum_{i=1}^{d} (\lambda_{k+1}^i - \lambda_{k}^i)^2 +
-  \Bigl( \sum_{i=1}^{d} (\lambda_{k+1}^i - \lambda_{k}^i) \Bigr)^2 \Biggr),
+  \frac{\sigma^4}{4}\, \Biggl( 2 \sum_{i=1}^d (\lambda_{k+1}^{(i)} - \lambda_k^{(i)})^2
+  + \Bigl( \sum_{i=1}^d (\lambda_{k+1}^{(i)} - \lambda_k^{(i)}) \Bigr)^2 \Biggr).
 $$
-where $\{\lambda_k^i\}_{i=1}^d$ and $\{\lambda_{k+1}^i\}_{i=1}^d$ are the top $d$ Hessian eigenvalues at sample sizes $k$ and $k + 1$,
+where $\{\lambda_k^{(i)}\}_{i=1}^d$ and $\{\lambda_{k+1}^{(i)}\}_{i=1}^d$ are the top $d$ Hessian eigenvalues at sample sizes $k$ and $k + 1$,
 and $\sigma$ is the perturbation variance.
 
 \begin{enumerate}
@@ -627,7 +631,7 @@ and $\sigma$ is the perturbation variance.
 
 \begin{figure}[!htbp]
   \subfloat{\includegraphics[width=1\textwidth]{img/delta_border_1_10_64.pdf}}
-  \caption{Delta function landscape}
+  \caption{Theoretical and Empirical $\Delta_k$}
   \label{fig:delta_eigen_comparison}
 \end{figure}
 
@@ -646,12 +650,14 @@ Our Hessian‐projection framework provides a clear picture of how a neural netw
 By restricting attention to the $d$ principal curvature directions (the top Hessian eigenvectors), we obtain far more structured 3D
 loss surfaces and a sharply decaying landscape‐difference measure
 $$
-  \Delta_k \;=\; \mathbb{E}_{p(\btheta)}\bigl[L_{k+1}(\btheta)-L_k(\btheta)\bigr]^2,
+  \Delta_k =
+  \mathbb{E} \bigl[ \cL_{k+1}(\btheta) - \cL_k(\btheta) \bigr]^2,
 $$
 which empirically follows an approximate $O(1/k)$ trend.  Moreover, the Hessian‐based bound
 $$
-  \Delta_k\approx\frac{\sigma^4}{4}\Bigl(2\sum_{i=1}^d(\lambda^i_{k+1}-\lambda^i_k)^2
-  +\bigl(\sum_{i=1}^d(\lambda^i_{k+1}-\lambda^i_k)\bigr)^2\Bigr)
+  \Delta_k \approx
+  \frac{\sigma^4}{4}\, \Biggl( 2 \sum_{i=1}^d (\lambda_{k+1}^{(i)} - \lambda_k^{(i)})^2
+  + \Bigl( \sum_{i=1}^d (\lambda_{k+1}^{(i)} - \lambda_k^{(i)}) \Bigr)^2 \Biggr).
 $$
 consistently upper‐bounds the Monte Carlo estimates (\ref{fig:delta_eigen_comparison}). This confirms that only a small number of
 eigen‐modes drive the bulk of loss‐landscape change.

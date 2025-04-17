@@ -17,7 +17,7 @@ class HessianEigenvector:
         self.eigenvectors = []
         self.eigenvalues = []
 
-    def get(self, k, num_iters=1000, tol=1e-7):
+    def get(self, k, num_iters=1000, tol=1e-6):
         if k <= len(self.eigenvectors):
             return self.eigenvalues[:k], self.eigenvectors[:k]
 

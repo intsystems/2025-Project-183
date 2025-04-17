@@ -41,23 +41,18 @@ class LossVisualizer:
             x = max(x, z_grid_bounds[0])
             return x
 
-        title = rf'$\mathcal{{L}}_{{{size1}}}$'
         zgrid = np.array([[bounds_func(np.mean(self.grid_loss[(x, y)][:size1])) for x in xs] for y in ys])
-
-        title_dif = rf'$(\mathcal{{L}}_{{{size2}}} - \mathcal{{L}}_{{{size1}}})^2$'
         zgrid_dif = np.array([[bounds_func(x) for x in r] for r in zgrid_dif])
 
         fig = plt.figure(figsize=(14, 6))
 
         ax1 = fig.add_subplot(1, 2, 1, projection='3d')
-        ax1.set_title(title)
         surf1 = ax1.plot_surface(xgrid, ygrid, zgrid, linewidth=0, antialiased=False, cmap=cm.get_cmap("coolwarm"),
                                  alpha=1.0)
         fig.colorbar(surf1, ax=ax1, shrink=0.5, aspect=5)
         ax1.view_init(40, 20)
 
         ax2 = fig.add_subplot(1, 2, 2, projection='3d')
-        ax2.set_title(title_dif)
         surf2 = ax2.plot_surface(xgrid, ygrid, zgrid_dif, linewidth=0, antialiased=False, cmap=cm.get_cmap("coolwarm"),
                                  alpha=1.0)
         fig.colorbar(surf2, ax=ax2, shrink=0.5, aspect=5)
@@ -78,13 +73,12 @@ class DeltaVisualizer:
         mult_coef = np.square(np.arange(1, len(deltas) + 1))
 
         fig, axs = plt.subplots(figsize=(14, 6), nrows=1, ncols=2)
-        fig.suptitle(rf'$\Delta_k$: $\sigma$ = {params['sigma']}, dimensions = {params['dim']}, K = {num_samples}')
 
         axs[0].plot(deltas)
         axs[1].plot(deltas * mult_coef)
 
-        ylabels = [r'$\mathbb{E}(\mathcal{L}_{k+1} - \mathcal{L}_{k})^2$',
-                   r'$\mathbb{E}(\mathcal{L}_{k+1} - \mathcal{L}_{k})^2 \cdot k^2$']
+        ylabels = [r'$\Delta_k$',
+                   r'$\Delta_k \cdot k^2$']
 
         axs[0].set(
             xlabel='k',
@@ -110,11 +104,10 @@ class DeltaVisualizer:
         fig, ax = plt.subplots(figsize=(8, 6))
 
         offset = len(deltas) - len(border)
-        ax.plot(np.arange(offset, len(deltas)), deltas[offset:], label='Δ_k')
-        ax.plot(np.arange(offset, len(deltas)), border, label='border', linestyle='--')
+        ax.plot(np.arange(offset, len(deltas)), deltas[offset:], label='Empirical')
+        ax.plot(np.arange(offset, len(deltas)), border, label='Theoretical', linestyle='--')
 
         ax.set(
-            title=rf'$\Delta_k$: $\sigma$ = {params["sigma"]}, dimensions = {params["dim"]}, K = {num_samples}',
             xlabel='k',
             ylabel=r'$\mathbb{E}(\mathcal{L}_{k+1} - \mathcal{L}_{k})^2$',
             xlim=[max(offset, begin), len(deltas)],
@@ -143,17 +136,15 @@ class DeltaVisualizer:
             deltas = self.calculator.calc_deltas(params, num_samples=num_samples)
             target_param_to_deltas[target_param] = deltas
 
-        fixed_param = 'Sigma' if target_param_key == 'dim' else 'Dimensions'
         fig, axs = plt.subplots(figsize=(14, 6), nrows=1, ncols=2)
-        fig.suptitle(rf'$\Delta_k$, Compare {target_param_key}: {fixed_param} = {list(params.values())[0]}')
 
         for target_param, deltas in target_param_to_deltas.items():
             axs[0].plot(deltas, label=target_param)
             mult_coef = np.square(np.arange(1, len(deltas) + 1))
             axs[1].plot(deltas * mult_coef, label=target_param)
 
-        ylabels = [r'$\mathbb{E}(\mathcal{L}_{k+1} - \mathcal{L}_{k})^2$',
-                   r'$\mathbb{E}(\mathcal{L}_{k+1} - \mathcal{L}_{k})^2 \cdot k^2$']
+        ylabels = [r'$\Delta_k$',
+                   r'$\Delta_k \cdot k^2$']
 
         axs[0].set(
             xlabel='k',
@@ -168,8 +159,9 @@ class DeltaVisualizer:
             xlim=[begin, len(deltas)],
         )
 
-        axs[0].legend(title=target_param_key)
-        axs[1].legend(title=target_param_key)
+        unfixed_param = 'Dimension' if target_param_key == 'dim' else 'Variance'
+        axs[0].legend(title=unfixed_param)
+        axs[1].legend(title=unfixed_param)
 
         plt.savefig(
             "../paper/img/delta_" + self.core_type + f"_{target_param_key}" + f"_{params[list(params.keys())[0]]}_{num_samples}" + ".pdf")
@@ -184,16 +176,14 @@ class DeltaVisualizer:
         num_samples_to_deltas = {b: cummean_diff_lists[b - 1] for b in num_samples_grid}
         fig, axs = plt.subplots(figsize=(14, 6), nrows=1, ncols=2)
 
-        fig.suptitle(rf'$\Delta_k$, Compare num_samples: Sigma = {params["sigma"]}, Dimensions = {params["dim"]}')
-
         deltas = []
         for num_samples, deltas in num_samples_to_deltas.items():
             axs[0].plot(deltas, label=num_samples)
             mult_coef = np.square(np.arange(1, len(deltas) + 1))
             axs[1].plot(deltas * mult_coef, label=num_samples)
 
-        ylabels = [r'$\mathbb{E}(\mathcal{L}_{k+1} - \mathcal{L}_{k})^2$',
-                   r'$\mathbb{E}(\mathcal{L}_{k+1} - \mathcal{L}_{k})^2 \cdot k^2$']
+        ylabels = [r'$\Delta_k$',
+                   r'$\Delta_k \cdot k^2$']
 
         axs[0].set(
             xlabel='k',
