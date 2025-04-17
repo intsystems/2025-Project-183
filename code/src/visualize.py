@@ -1,13 +1,10 @@
-import itertools
-from matplotlib import cm
-import numpy as np
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 import copy
-import scipy.stats as sps
+import itertools
+import numpy as np
 from tqdm.auto import tqdm
 
-from src.calc import DeltaCalculator
+from matplotlib import cm
+import matplotlib.pyplot as plt
 
 
 class LossVisualizer:
@@ -74,7 +71,7 @@ class DeltaVisualizer:
         self.calculator = calculator
         self.core_type = calculator.core.type
 
-    def visualize_all(self, params, num_samples, begin):
+    def visualize_all(self, params, num_samples=64, begin=10):
         params = copy.deepcopy(params)
 
         deltas = self.calculator.calc_deltas(params, num_samples=num_samples)
@@ -86,8 +83,8 @@ class DeltaVisualizer:
         axs[0].plot(deltas)
         axs[1].plot(deltas * mult_coef)
 
-        ylabels = [r'$\mathbb{E}_{p(\mathbf{\theta})}(L_k - L_{k-1})^2$',
-                   r'$\mathbb{E}_{p(\mathbf{\theta})}(L_k - L_{k-1})^2 \cdot k^2$']
+        ylabels = [r'$\mathbb{E}(\mathcal{L}_{k+1} - \mathcal{L}_{k})^2$',
+                   r'$\mathbb{E}(\mathcal{L}_{k+1} - \mathcal{L}_{k})^2 \cdot k^2$']
 
         axs[0].set(
             xlabel='k',
@@ -105,12 +102,39 @@ class DeltaVisualizer:
             "../paper/img/delta_" + self.core_type + f"_{params['sigma']}_{params['dim']}_{num_samples}" + ".pdf")
         plt.show()
 
+    def visualize_border(self, border, params, num_samples=64, begin=10):
+        params = copy.deepcopy(params)
+
+        deltas = self.calculator.calc_deltas(params, num_samples=num_samples)
+
+        fig, ax = plt.subplots(figsize=(8, 6))
+
+        offset = len(deltas) - len(border)
+        ax.plot(np.arange(offset, len(deltas)), deltas[offset:], label='Δ_k')
+        ax.plot(np.arange(offset, len(deltas)), border, label='border', linestyle='--')
+
+        ax.set(
+            title=rf'$\Delta_k$: $\sigma$ = {params["sigma"]}, dimensions = {params["dim"]}, K = {num_samples}',
+            xlabel='k',
+            ylabel=r'$\mathbb{E}(\mathcal{L}_{k+1} - \mathcal{L}_{k})^2$',
+            xlim=[max(offset, begin), len(deltas)],
+            ylim=[
+                min(min(deltas[max(offset, begin):]), min(border)),
+                max(max(deltas[max(offset, begin):]), max(border)) * 1.2]
+        )
+        ax.legend()
+
+        plt.savefig(
+            "../paper/img/delta_border" + f"_{params['sigma']}_{params['dim']}_{num_samples}" + ".pdf"
+        )
+        plt.show()
+
     def compare_params(self,
                        params,
                        target_param_key,
                        target_param_grid,
-                       num_samples,
-                       begin):
+                       num_samples=64,
+                       begin=10):
         params = copy.deepcopy(params)
         target_param_to_deltas = {}
         deltas = []
@@ -128,8 +152,8 @@ class DeltaVisualizer:
             mult_coef = np.square(np.arange(1, len(deltas) + 1))
             axs[1].plot(deltas * mult_coef, label=target_param)
 
-        ylabels = [r'$\mathbb{E}_{p(\mathbf{w})}(L_k - L_{k-1})^2$',
-                   r'$\mathbb{E}_{p(\mathbf{w})}(L_k - L_{k-1})^2 \cdot k^2$']
+        ylabels = [r'$\mathbb{E}(\mathcal{L}_{k+1} - \mathcal{L}_{k})^2$',
+                   r'$\mathbb{E}(\mathcal{L}_{k+1} - \mathcal{L}_{k})^2 \cdot k^2$']
 
         axs[0].set(
             xlabel='k',
@@ -151,7 +175,7 @@ class DeltaVisualizer:
             "../paper/img/delta_" + self.core_type + f"_{target_param_key}" + f"_{params[list(params.keys())[0]]}_{num_samples}" + ".pdf")
         plt.show()
 
-    def compare_samples_num(self, params, num_samples_grid, begin=0):
+    def compare_samples_num(self, params, num_samples_grid, begin=10):
         max_samples_num = max(num_samples_grid)
         diff_lists = self.calculator.calc_diff_lists(params, num_samples=max_samples_num)
         diff_lists = diff_lists ** 2
@@ -168,8 +192,8 @@ class DeltaVisualizer:
             mult_coef = np.square(np.arange(1, len(deltas) + 1))
             axs[1].plot(deltas * mult_coef, label=num_samples)
 
-        ylabels = [r'$\mathbb{E}_{p(\mathbf{w})}(L_k - L_{k-1})^2$',
-                   r'$\mathbb{E}_{p(\mathbf{w})}(L_k - L_{k-1})^2 \cdot k^2$']
+        ylabels = [r'$\mathbb{E}(\mathcal{L}_{k+1} - \mathcal{L}_{k})^2$',
+                   r'$\mathbb{E}(\mathcal{L}_{k+1} - \mathcal{L}_{k})^2 \cdot k^2$']
 
         axs[0].set(
             xlabel='k',

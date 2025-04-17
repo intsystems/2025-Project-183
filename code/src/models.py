@@ -5,6 +5,8 @@
 #   * Project : untitled
 # --========================================-- #
 
+import copy
+import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from tqdm.auto import tqdm
@@ -55,7 +57,7 @@ def train(model, criterion, dataloader, optimizer, num_epochs=10, ret=False, log
     model.train()
 
     losses = []
-    for epoch in tqdm(range(1, num_epochs + 1)):
+    for epoch in tqdm(range(1, num_epochs + 1), desc="Epoch"):
         running_loss = 0.0
         batches_count = 0
 
@@ -78,3 +80,34 @@ def train(model, criterion, dataloader, optimizer, num_epochs=10, ret=False, log
             print(f"Epoch [{epoch}/{num_epochs}]: loss = {avg_loss:.4f}")
 
     return losses if ret else None
+
+
+def get_loss(model, criterion, dataloader, device):
+    model.eval()
+    losses = []
+    for x, y in dataloader:
+        x, y = x.to(device), y.to(device)
+        outputs = model(x)
+        loss = criterion(outputs, y)
+        losses.append(loss)
+    return torch.stack(losses, dim=0)
+
+
+def inplace_sum_models(model1, model2, coef1, coef2):
+    final = model1
+    for (name1, param1), (name2, param2) in zip(final.state_dict().items(), model2.state_dict().items()):
+        transformed_param = param1 * coef1 + param2 * coef2
+        param1.copy_(transformed_param)
+    return final
+
+
+def calc_sum_models(model1, model2, coef1, coef2):
+    final = copy.deepcopy(model1)
+    final.load_state_dict(copy.deepcopy(model1.state_dict()))
+    return inplace_sum_models(final, model2, coef1, coef2)
+
+
+def init_from_params(model, direction):
+    for p_orig, p_other in zip(model.parameters(), direction):
+        with torch.no_grad():
+            p_orig.copy_(p_other)
