@@ -1,4 +1,4 @@
-# Neural Networks Loss Landscape Convergence in Different Low-Dimensional Spaces
+# Neural Networks Loss Landscape Convergence in Hessian Low-Dimensional Space
 
 [![License](https://badgen.net/github/license/intsystems/2025-Project-183?color=green)](https://github.com/intsystems/2025-Project-183/blob/main/LICENSE)
 [![GitHub Contributors](https://img.shields.io/github/contributors/intsystems/2025-Project-183)](https://github.com/intsystems/2025-Project-183/graphs/contributors)
@@ -51,7 +51,7 @@ If you find our work helpful, please cite us.
 
 ```BibTeX
 @article{intsystems183,
-    title={Neural Networks Loss Landscape Convergence in Different Low-Dimensional Spaces},
+    title={Neural Networks Loss Landscape Convergence in Hessian Low-Dimensional Space},
     author={Tem Nikitin, Nikita Kiselev, Vladislav Meshkov, Andrey Grabovoy},
     year={2025}
 }
