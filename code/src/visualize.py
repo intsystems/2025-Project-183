@@ -44,7 +44,7 @@ class LossVisualizer:
         zgrid = np.array([[bounds_func(np.mean(self.grid_loss[(x, y)][:size1])) for x in xs] for y in ys])
         zgrid_dif = np.array([[bounds_func(x) for x in r] for r in zgrid_dif])
 
-        fig = plt.figure(figsize=(14, 6))
+        fig = plt.figure(figsize=(15, 6))
 
         ax1 = fig.add_subplot(1, 2, 1, projection='3d')
         surf1 = ax1.plot_surface(xgrid, ygrid, zgrid, linewidth=0, antialiased=False, cmap=cm.get_cmap("coolwarm"),
