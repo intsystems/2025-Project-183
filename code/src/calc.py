@@ -74,12 +74,8 @@ class DeltaCalculator:
         """
 
         diff_lists = []
-        for _ in tqdm(np.arange(1, num_samples + 1), desc="Sample"):
-            diff_lists.append(
-                self.calc_differences(
-                    self.calc_shifted_losses(mode_params)
-                )
-            )
+        for _ in np.arange(1, num_samples + 1):
+            diff_lists.append(self.calc_differences(self.calc_shifted_losses(mode_params)))
         return np.array(diff_lists)
 
     @staticmethod

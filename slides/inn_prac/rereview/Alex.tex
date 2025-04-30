@@ -1,0 +1,78 @@
+\documentclass[11pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T2A]{fontenc}
+\usepackage[russian]{babel}
+\usepackage{amsmath,amssymb}
+\usepackage[left=2cm,right=2cm,top=2cm,bottom=2cm]{geometry}
+
+\begin{document}
+
+\pagestyle{empty}
+
+\begin{center}
+    \subsection*{Ответ на замечание рецензента Кравацкого Алексея Юрьевича}
+\end{center}
+
+\begin{quote}
+    \textbf{Рецензент:}
+    ``I was particularly interested in this presentation because the idea was not to improve accuracy at the expense of even
+    higher computational cost, but rather to preserve accuracy while reducing the cost.''
+\end{quote}
+
+\paragraph{Ответ.}
+Благодарю за высокую оценку фокуса работы на оптимизации соотношения ``точность --- вычислительные ресурсы''. Действительно,
+ключевая цель моего метода — определить порог объёма данных $K$, после которого дальнейшее наращивание выборки приводит к
+пренебрежимо малым изменениям ландшафта потерь, позволяя экономить ресурсы без потери точности.
+
+\begin{quote}
+    \textbf{Рецензент:}
+    ``I like the style of the presentation: it is informative and neat.''
+\end{quote}
+
+\paragraph{Ответ.}
+Рад, что оформление и структура доклада оказались понятными и информативными --- я старался сделать материалы понятными
+для аудитории.
+
+\begin{quote}
+    \textbf{Рецензент:}
+    ``I would like to learn more about plans regarding both theory and experiments.''
+\end{quote}
+
+\paragraph{Ответ.}
+В финальной версии статьи я введу раздел ``Планы и будущие работы'', где опишу:
+\begin{itemize}
+    \item Расширение теоретических выкладок: уточнение неасимптотических оценок сходимости $\Delta_k$ в зависимости от
+          свойств распределения данных и архитектуры сети.
+    \item Проведение новых экспериментов на CIFAR и современных архитектурах (ResNet, ConvNet).
+\end{itemize}
+
+\begin{quote}
+    \textbf{Рецензент:}
+    ``Verification of the theoretical bounds was mentioned in the “results”, but the bounds were not presented, which is
+    disappointing, as they must convey the gist of the method.''
+\end{quote}
+
+\paragraph{Ответ.}
+Действительно, в устной версии доклада я лишь упомянул проверку теоретической формулы
+$$\Delta_k \approx \frac{\sigma^4}{4}\Bigl(2\sum_{i=1}^d(\lambda^{(i)}_{k+1}-\lambda^{(i)}_k)^2
+    +\Bigl(\sum_{i=1}^d(\lambda^{(i)}_{k+1}-\lambda^{(i)}_k)\Bigr)^2\Bigr),$$
+но не показал соответствующие графики. В окончательном тексте я включу графическое сравнение теоретической кривой и
+эмпирических значений $\Delta_k$.
+
+\begin{quote}
+    \textbf{Рецензент:}
+    ``I would like to learn more about applications of the method to different architectures. The experiment has been already
+    conducted on MNIST and Fashion-MNIST, which is commendable, but many a conference reviewer would be particularly
+    interested in possibility of application of the method to transformers and other complex architectures.''
+\end{quote}
+
+\paragraph{Ответ.}
+Полностью разделяю интерес к применению метода на современных глубоких моделях. В разделе ``Эксперименты'' статьи я представлю
+предварительные результаты для ResNet и ConvNet на CIFAR,
+демонстрируя, что ``активное'' подпространство, выделенное по первым $d$ собственным векторам Гессиана, устойчиво к
+усложнению архитектуры.
+
+Эти дополнения сделают статью более убедительной для аудитории, работающей с современными архитектурами.
+
+\end{document}

@@ -1,6 +1,6 @@
-numpy~=2.2.2
-torch~=2.5.1
-torchvision~=0.20.1
-matplotlib~=3.10.0
-scipy~=1.15.1
-tqdm~=4.67.1
+numpy
+torch
+torchvision
+matplotlib
+scipy
+tqdm

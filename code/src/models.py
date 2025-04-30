@@ -10,6 +10,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from tqdm.auto import tqdm
+from src.eigenvalues import HessianEigenvector
+import numpy as np
 
 
 class MLP(nn.Module):
@@ -57,7 +59,7 @@ def train(model, criterion, dataloader, optimizer, num_epochs=10, ret=False, log
     model.train()
 
     losses = []
-    for epoch in tqdm(range(1, num_epochs + 1), desc="Epoch"):
+    for epoch in range(1, num_epochs + 1):
         running_loss = 0.0
         batches_count = 0
 
@@ -82,15 +84,66 @@ def train(model, criterion, dataloader, optimizer, num_epochs=10, ret=False, log
     return losses if ret else None
 
 
-def get_loss(model, criterion, dataloader, device):
+def get_loss(model, criterion, dataloader, device, border=None):
     model.eval()
     losses = []
+
     for x, y in dataloader:
         x, y = x.to(device), y.to(device)
         outputs = model(x)
         loss = criterion(outputs, y)
         losses.append(loss)
+        if border is not None and len(losses) >= border:
+            break
     return torch.stack(losses, dim=0)
+
+
+def hessian_theoretical(eigen_matrix):
+    diff = eigen_matrix[1:] - eigen_matrix[:-1]
+    return (2 * np.square(diff).sum(axis=-1) + np.square(diff.sum(axis=-1))) / 4
+
+
+def estimate_train(model, criterion, dataloader, optimizer, delta, directions=10,
+                   num_epochs=10, ret=False, log=False):
+    model.train()
+    losses = []
+
+    for x, y in dataloader:
+        running_loss = 0.0
+
+        for _ in range(1, num_epochs + 1):
+            x, y = x.to(model.device), y.to(model.device)
+
+            optimizer.zero_grad()
+            output = model(x)
+            loss = criterion(output, y)
+            loss.backward()
+            optimizer.step()
+
+            losses.append(loss.detach().cpu().item())
+
+            running_loss += losses[-1]
+
+        avg_loss = running_loss / num_epochs
+
+        loss_iter = get_loss(model, criterion, dataloader, model.device, len(losses) // num_epochs)
+        func_iter = torch.cumsum(loss_iter, dim=0) / torch.arange(1, loss_iter.size(0) + 1, device=model.device)
+
+        delta_e = None
+        if len(losses) // num_epochs > 1:
+            last = HessianEigenvector(model.parameters(), func_iter[len(losses) // num_epochs - 2]).get(directions)[0]
+            curr = HessianEigenvector(model.parameters(), func_iter[len(losses) // num_epochs - 1]).get(directions)[0]
+
+            delta_e = hessian_theoretical(np.vstack((last, curr)))[0]
+
+        if log:
+            print(f"Batch [{len(losses) // num_epochs}/{len(dataloader)}]: loss = {avg_loss:.4f}, "
+                  f"delta = {1e9 if delta_e is None else delta_e:.4f}")
+
+        if delta_e is not None and delta_e < delta:
+            break
+
+    return losses if ret else None
 
 
 def inplace_sum_models(model1, model2, coef1, coef2):

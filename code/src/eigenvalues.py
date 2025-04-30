@@ -32,7 +32,7 @@ class HessianEigenvector:
         v = self._normalize(v)
 
         eigenvalue = None
-        for _ in tqdm(range(num_iters), desc="Power iter"):
+        for _ in range(num_iters):
             hv = self._hvp(self.variables, self.func, v)
 
             for d in self.eigenvectors:
