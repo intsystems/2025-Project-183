@@ -55,6 +55,84 @@ class MLP(nn.Module):
         return next(iter(self.parameters())).device
 
 
+class ConvBlock(nn.Module):
+    r"""
+        Convolutional block
+
+        Args:
+            c_in, c_out - input/output number of channels
+            kernel_size - size of kernel
+    """
+
+    def __init__(self, c_in, c_out, kernel_size, padding):
+        super(ConvBlock, self).__init__()
+        self.body = nn.Sequential(
+            nn.Conv2d(in_channels=c_in, out_channels=c_out,
+                      kernel_size=kernel_size, stride=1, padding=padding),
+            nn.ReLU()
+        )
+
+    def forward(self, x):
+        return self.body(x)
+
+
+def _calc_flattened_size(channels_list, ker_size_list, input_sizes, padding):
+    ker_delta = np.sum(np.array(ker_size_list) - 1)
+    pad_delta = padding * 2 * (len(ker_size_list) - 1)
+    final_sizes = (input_sizes[0] - ker_delta + pad_delta, input_sizes[1] - ker_delta + pad_delta)
+    return final_sizes[0] * final_sizes[1] * channels_list[-1]
+
+
+def _stack_conv_blocks(channels_list, ker_size_list, padding):
+    convs_list = []
+    for c_in, c_out, kernel_size in zip(channels_list[:-2], channels_list[1:-1], ker_size_list[:-1]):
+        convs_list.append(ConvBlock(c_in, c_out, kernel_size, padding))
+    convs_list.append(nn.Conv2d(channels_list[-2], channels_list[-1], ker_size_list[-1], padding))
+    return nn.Sequential(*convs_list)
+
+
+class ConvNet(nn.Module):
+    r"""
+    Convolutional network
+
+    Args:
+        channels_list list(int): list of layers number of channels
+        input_sizes (int, int): width, height of input images
+        classes (int): number of classes for classification
+
+    """
+
+    def __init__(self, layers_num,
+                 hidden_channels,
+                 kernel_size,
+                 padding,
+                 input_channels,
+                 output_channels,
+                 input_sizes,
+                 classes):
+        super(ConvNet, self).__init__()
+
+        channels_list = [input_channels] + [hidden_channels for _ in range(layers_num)] + [output_channels]
+        ker_size_list = [kernel_size for _ in channels_list[:-1]]
+        self.model = _stack_conv_blocks(channels_list, ker_size_list, padding)
+        self.flatten = nn.Flatten()
+
+        flat_size = _calc_flattened_size(channels_list, ker_size_list, input_sizes, padding)
+        self.head = nn.Sequential(
+            nn.Linear(flat_size, classes)
+        )
+
+    def forward(self, images):
+        out = self.model(images)
+        flattened = self.flatten(out)
+        logits = self.head(flattened)
+        return logits
+
+    @property
+    def device(self):
+        return next(iter(self.parameters())).device
+
+
 def train(model, criterion, dataloader, optimizer, num_epochs=10, ret=False, log=False):
     model.train()
 
@@ -77,8 +155,8 @@ def train(model, criterion, dataloader, optimizer, num_epochs=10, ret=False, log
             batches_count += 1
             running_loss += losses[-1]
 
-        avg_loss = running_loss / batches_count
         if log:
+            avg_loss = running_loss / batches_count
             print(f"Epoch [{epoch}/{num_epochs}]: loss = {avg_loss:.4f}")
 
     return losses if ret else None
@@ -103,7 +181,7 @@ def hessian_theoretical(eigen_matrix):
     return (2 * np.square(diff).sum(axis=-1) + np.square(diff.sum(axis=-1))) / 4
 
 
-def estimate_train(model, criterion, dataloader, optimizer, delta, directions=10,
+def estimate_train(model, criterion, dataloader, optimizer, delta, directions=2,
                    num_epochs=10, ret=False, log=False):
     model.train()
     losses = []
@@ -124,19 +202,16 @@ def estimate_train(model, criterion, dataloader, optimizer, delta, directions=10
 
             running_loss += losses[-1]
 
-        avg_loss = running_loss / num_epochs
-
-        loss_iter = get_loss(model, criterion, dataloader, model.device, len(losses) // num_epochs)
-        func_iter = torch.cumsum(loss_iter, dim=0) / torch.arange(1, loss_iter.size(0) + 1, device=model.device)
-
         delta_e = None
         if len(losses) // num_epochs > 1:
+            loss_iter = get_loss(model, criterion, dataloader, model.device, len(losses) // num_epochs)
+            func_iter = torch.cumsum(loss_iter, dim=0) / torch.arange(1, loss_iter.size(0) + 1, device=model.device)
             last = HessianEigenvector(model.parameters(), func_iter[len(losses) // num_epochs - 2]).get(directions)[0]
             curr = HessianEigenvector(model.parameters(), func_iter[len(losses) // num_epochs - 1]).get(directions)[0]
-
             delta_e = hessian_theoretical(np.vstack((last, curr)))[0]
 
         if log:
+            avg_loss = running_loss / num_epochs
             print(f"Batch [{len(losses) // num_epochs}/{len(dataloader)}]: loss = {avg_loss:.4f}, "
                   f"delta = {1e9 if delta_e is None else delta_e:.4f}")
 

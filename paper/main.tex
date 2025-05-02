@@ -677,7 +677,8 @@ empirical $\Delta_k$ and is much cheaper to compute, we employ the following alg
 \end{algorithm}
 
 Moreover, in addition to determining the dataset size $K$, the procedure also yields a fully trained model as a by‐product of the
-iterative updates.
+iterative updates. Optionally it is possible to reduce $D$ if calculations are too complex, but it will affect the correlation with loss
+function.
 
 This procedure incrementally grows the dataset until the eigenvalue-based estimate $\Delta_k$ falls below the prescribed
 tolerance $\Delta$, at which point further additions have a negligible effect on the loss. The dominant cost per iteration is the

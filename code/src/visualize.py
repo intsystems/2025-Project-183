@@ -119,16 +119,13 @@ class DeltaVisualizer:
 
         fig, ax = plt.subplots(figsize=(15, 8))
 
-        offset = len(deltas) - len(border)
-        ax.plot(np.arange(offset, len(deltas)), striding_func(deltas[offset:]), label='Empirical')
-        ax.plot(np.arange(offset, len(deltas)), border, label='Theoretical', linestyle='--')
+        ax.plot(np.arange(1, len(deltas) + 1), striding_func(deltas), label='Empirical')
+        ax.plot(np.arange(1, len(deltas) + 1), border, label='Theoretical', linestyle='--')
 
         ax.set(
             xlabel='k',
-            xlim=[max(offset, begin), len(deltas)],
-            ylim=[
-                min(min(deltas[max(offset, begin):]), min(border)),
-                max(max(deltas[max(offset, begin):]), max(border)) * 1.2],
+            xlim=[begin, len(deltas) + 1],
+            ylim=[min(min(deltas[begin:]), min(border)), max(max(deltas[begin:]), max(border)) * 1.2],
             yscale='log'
         )
         ax.set_ylabel(r'$\Delta_k$', rotation=0,
@@ -238,3 +235,27 @@ class DeltaVisualizer:
         plt.savefig(
             "../paper/img/delta_" + self.core_type + "_num_samples" + f"_{params['sigma']}_{params['dim']}" + ".pdf")
         plt.show()
+
+
+def vis_compare(theory, empiric, loss_func, params, num_samples=64, begin=10):
+    loss = loss_func.cpu().detach().numpy()[:-1]
+    _, axs = plt.subplots(figsize=(18, 14), nrows=2, ncols=1)
+
+    axs[0].scatter(loss[begin:], empiric[begin:])
+
+    k1, b1 = np.polyfit(loss[begin:], empiric[begin:], 1)
+    y1_trend = k1 * loss[begin:] + b1
+    axs[0].plot(loss[begin:], y1_trend, color='red', linewidth=2, label=f'Trend line')
+    axs[0].set(xlabel=r'$\mathcal {L}_k$', ylabel=r'$\Delta_k$ Empirical')
+    axs[0].legend()
+
+    axs[1].scatter(loss[begin:], theory[begin:])
+
+    k2, b2 = np.polyfit(loss[begin:], theory[begin:], 1)
+    y2_trend = k2 * loss[begin:] + b2
+    axs[1].plot(loss[begin:], y2_trend, color='green', linewidth=2, label=f'Trend line')
+    axs[1].set(xlabel=r'$\mathcal {L}_k$', ylabel=r'$\Delta_k$ Theoretical')
+    axs[1].legend()
+
+    plt.savefig("../paper/img/delta_loss" + f"_{params['sigma']}_{params['dim']}_{num_samples}" + ".pdf")
+    plt.show()

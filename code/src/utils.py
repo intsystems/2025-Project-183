@@ -9,6 +9,13 @@ import torch
 from torch.utils.data import DataLoader
 from torchvision import datasets
 import numpy as np
+from numpy.lib.stride_tricks import sliding_window_view
+
+
+def sliding_avg(eigen_matrix, k):
+    pad = np.pad(eigen_matrix, k, mode='edge')
+    windows = sliding_window_view(pad, window_shape=2 * k + 1)
+    return windows.mean(axis=1)
 
 
 def init_dataloader(dataset_name,
