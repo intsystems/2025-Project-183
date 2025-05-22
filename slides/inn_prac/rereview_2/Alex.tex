@@ -1,0 +1,78 @@
+\documentclass[11pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T2A]{fontenc}
+\usepackage[russian]{babel}
+\usepackage{amsmath,amssymb}
+\usepackage[left=2cm,right=2cm,top=2cm,bottom=2cm]{geometry}
+
+\begin{document}
+
+\pagestyle{empty}
+
+\begin{center}
+    \subsection*{Ответ на замечания рецензента Кравацкого Алексея Юрьевича}
+\end{center}
+
+% Положительные замечания
+\begin{quote}
+    \textbf{Reviewer:}
+    «I was particularly interested in this presentation because the idea was not to improve accuracy at the expense of even higher computational cost, but rather to preserve accuracy while reducing the cost.
+    I like the style of the presentation: it is highly informative and neat.»
+\end{quote}
+
+\paragraph{Ответ автора.}
+Благодарю за позитивную оценку основной идеи работы и оформления презентации. Действительно, наша цель — найти «точку насыщения» данных, после которой дальнейшее увеличение выборки не даёт значимого прироста, сохраняя при этом вычислительную эффективность.
+
+% Замечание 1
+\begin{quote}
+    \textbf{Reviewer:}
+    «I was confused with the batch counter and the batch size in the statement of the algorithm: there were no mentions of batches up to that slide!»
+\end{quote}
+
+\paragraph{Ответ автора.}
+Действительно, формулировка алгоритма могла вызвать путаницу. В финальной версии статьи и презентации мы:
+\begin{itemize}
+    \item Чётко введём обозначения: \(k\) — индекс уровня размера выборки (количество образцов), а \(B\) — размер мини-бэтча при вычислении стохастических приближений градиента и гессиана;
+    \item В шаге алгоритма укажем две строки:
+          \[
+              \text{for } k = 1,2,\dots,K:\quad
+              \begin{cases}
+                  \text{Draw } B \text{ samples;}                               \\
+                  \text{Compute Monte Carlo estimates на этих }B\text{ точках;} \\
+              \end{cases}
+          \]
+          и объясним, что «batch counter» отсчитывает номера итераций по выборкам, а не уровни порога.
+\end{itemize}
+
+% Замечание 2
+\begin{quote}
+    \textbf{Reviewer:}
+    «I would like to know the motivation for choosing convergence rate of \(O(1/k)\) in Quality criteria.»
+\end{quote}
+
+\paragraph{Ответ автора.}
+Оценка \(O(1/k)\) исходит из классического анализа сходимости метода Монте-Карло: при \(M\) независимых выборках дисперсия оценки среднего уменьшается как \(1/M\). В нашей схеме мы считаем \(M\propto k\) (число точек в выборке), поэтому
+\[
+    Var\bigl[\Delta_k\bigr] \;=\; O\bigl(1/k\bigr)\,.
+\]
+В разделе «Теоретический анализ» будет добавлено разъяснение этого факта и ссылка на стандартную литературу по Монте-Карло (например, \emph{Glasserman, 2004}).
+
+% Замечание 3
+\begin{quote}
+    \textbf{Reviewer:}
+    «If the model is MLP in Problem Statement, why are we testing also a CNN?»
+\end{quote}
+
+\paragraph{Ответ автора.}
+В постановке задачи мы использовали MLP для более простой формулировки доказательств и определения гессиана в аналитическом виде. Однако методика проекции на собственные векторы гессиана не привязана к архитектуре сети. Мы включили эксперименты на CNN (LeNet-подобная сеть) чтобы продемонстрировать:
+\begin{itemize}
+    \item обобщаемость метода на свёрточные архитектуры;
+    \item сходную динамику сходимости \(\Delta_k\) в более сложных моделях.
+\end{itemize}
+В финальной версии мы уточним, что выбор MLP в теории — это упрощённый пример, а эмпирическая часть включает и CNN для демонстрации универсальности.
+
+\paragraph{Заключение.}
+Все указанные моменты будут детально проработаны и отражены в окончательном варианте статьи и презентации. Благодарю за глубокие и конструктивные замечания!
+
+\end{document}

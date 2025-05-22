@@ -3,9 +3,9 @@
 \usecolortheme{beaver}
 \setbeamertemplate{blocks}[rounded=true, shadow=true]
 \setbeamertemplate{footline}[page number]
-%
+
 \input{new_commands}
-%
+
 \usepackage[utf8]{inputenc}
 \usepackage[english]{babel}
 \usepackage{amssymb,amsfonts,amsmath,mathtext}
@@ -17,13 +17,9 @@
 \usepackage{tabularx}   
 \usepackage{hhline}
 
-\setbeamertemplate{itemize item}{}
-\setbeamertemplate{itemize subitem}{}
-\setbeamertemplate{itemize subsubitem}{}
-
 %----------------------------------------------------------------------------------
 \title[Loss Landscape Convergence]{Neural Networks Loss Landscape Convergence in Hessian Low-Dimensional Space}
-\author[Tem Nikitin \textit{et al.}]{Tem Nikitin, Nikita Kiselev, }
+\author[Tem Nikitin \textit{et al.}]{Tem Nikitin}
 \institute{Moscow Institute of Physics and Technology}
 \date{2025}
 %----------------------------------------------------------------------------------
@@ -34,34 +30,45 @@
     \maketitle
 \end{frame}
 
-\begin{frame}{Neural Networks Loss Landscape Convergence in Hessian Low-Dimensional Space}
-    \textbf{Goals and Tasks}
-    \begin{enumerate}
+\begin{frame}{Goals}
+    \begin{itemize}
         \item Study how neural network loss landscape changes with dataset size
-        \item Define and measure $\Delta_k = \mathbb{E} \bigl( \cL_{k+1}(\bw) - \cL_k(\bw) \bigr)^2$
+        \item Define and measure $\Delta_k = \mathbb{E}\bigl(\cL_{k+1}(\bw) - \cL_k(\bw)\bigr)^2$
         \item Develop Hessian-based low-dimensional projection method
         \item Derive theoretical bound for $\Delta_k$ via top-$d$ eigenvalues
         \item Propose an algorithm to determine the $\Delta$-sufficient dataset size
         \item Validate threshold $k^*$ beyond which further data yield negligible change
-    \end{enumerate}
+    \end{itemize}
 \end{frame}
 
-\begin{frame}{Loss landscape stabilizes after sufficient sample size.}
+\begin{frame}{One-slide}
     \begin{columns}[c]
         \hspace{-1.5cm}
         \column{0.6\textwidth}
-        \includegraphics[width=1.34\textwidth]{img/loss_eigen_-1_individ.pdf}
+        \includegraphics[width=1.2\textwidth]{img/loss_eigen_-1_individ.pdf}
         \column{0.5\textwidth}
         \begin{itemize}
             \item Hessian projection onto top-$d$ eigenvectors
-            \item Monte Carlo estimate of $\Delta_k^{emp} = \mathbb{E} \Bigl( \cL_{k+1} - \cL_{k} \Bigr)^2.$
+            \item Monte Carlo estimate of $\Delta_k^{emp} = \mathbb{E}\bigl(\cL_{k+1} - \cL_{k}\bigr)^2$
             \item Analytical bound: $\Delta_k^{th} \ge \Delta_k^{emp}$
             \item Detect dataset threshold $k^*$
         \end{itemize}
     \end{columns}
+    \bigskip
+    \textbf{Main message:} Loss landscape stabilizes after sufficient sample size.
 \end{frame}
 
-\begin{frame}{Problem Statement}
+\begin{frame}{Literature}
+    \begin{itemize}
+        \item Wu \textit{et al.} (2017): loss landscapes vs dataset size [2]
+        \item Sagun \textit{et al.} (2018): Hessian low effective rank [7]
+        \item Li \textit{et al.} (2018): visualizing loss surfaces [11]
+        \item Ghorbani \textit{et al.} (2019): eigenvalue density analysis [8]
+        \item Bousquet \& Elisseeff (2002): stability and generalization bounds [12]
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Problem Statement: Hypothesis and Model}
     \begin{block}{Hypothesis}
         Beyond some $k^*$, adding new samples changes the local loss landscape by less than a tolerance $\Delta_{tol}$, i.e.
         $\forall\, k \ge k^* : \; \Delta_k < \Delta_{tol}$.
@@ -73,40 +80,40 @@
             \item Hessian: $\bH_k(\bw) = \nabla^2_{\bw} \cL_k(\bw)$
         \end{itemize}
     \end{block}
-
-    \begin{block}{Criteria}
-        \begin{itemize}
-            \item Convergence rate: $\Delta_k = O(1/k^2)$
-            \item Theoretical bound via top-$d$ eigenvalues upper-bounds empirical $\Delta_k$
-            \item Plateau in eigenvalue differences $\lambda_i^{k+1}-\lambda_i^k$ indicates threshold
-        \end{itemize}
-    \end{block}
 \end{frame}
 
+\begin{frame}{Problem Statement: Quality Criteria}
+    \begin{itemize}
+        \item Convergence rate: $\Delta_k = O(1/k^2)$
+        \item Theoretical bound via top-$d$ eigenvalues upper-bounds empirical $\Delta_k$
+        \item Plateau in eigenvalue differences $\lambda_i^{k+1}-\lambda_i^k$ indicates threshold
+    \end{itemize}
+\end{frame}
 
-\begin{frame}{Theoretical Analysis}
+\begin{frame}{Problem Solution: Theoretical Analysis}
     \begin{columns}[c]
         \column{0.4\textwidth}
         \begin{itemize}
             \item Project parameters: $\bw = \bw^* + \bP \btheta$, $\bP = [\be_1, \dots, \be_d]$
             \item Taylor approx: $\cL_k (\bw^* + \bP \btheta) \approx \cL_k (\bw^*) + \tfrac12 \btheta^{\T} \bLambda_k \btheta$
                   \bigskip
-                  \bigskip
+            \item Bound:
         \end{itemize}
-        \column{0.8\textwidth}
+        \column{0.6\textwidth}
         \includegraphics[width=1.0\textwidth]{img/eigenvalues.pdf}
-        \vspace{0.5cm}\hspace{3.1cm}\raggedright{Eigenvalue decay}
+        \vspace{0.5cm}\hspace{1.8cm}\raggedright{\tiny Eigenvalue decay}
     \end{columns}
-    Bound:
-    $ \Delta_k \approx
-        \frac{\sigma^4}{4}\, \Biggl( 2 \sum_{i=1}^d (\lambda_{k+1}^i - \lambda_k^i)^2
-        + \Bigl( \sum_{i=1}^d (\lambda_{k+1}^i - \lambda_k^i) \Bigr)^2 \Biggr).$
+    $$
+        \Delta_k \approx
+        \frac{\sigma^4}{4}\,\Biggl(2 \sum_{i=1}^d (\lambda_{k+1}^i - \lambda_k^i)^2
+        + \Bigl(\sum_{i=1}^d (\lambda_{k+1}^i - \lambda_k^i)\Bigr)^2\Biggr).
+    $$
 \end{frame}
 
-\begin{frame}{Computational Experiment}
+\begin{frame}{Goals of Computational Experiment}
     \begin{itemize}
         \item Datasets: MNIST, Fashion-MNIST (60k train, 10k test)
-        \item MLP: 2 hidden layers, $\sim 10^5$ parameters
+        \item MLP: 2 hidden layers, $\sim10^5$ parameters
         \item Subspace dimension $d=10$, Monte Carlo samples $K=64$, $\sigma=1$
         \item Compare empirical $\Delta_k$ vs theoretical bound across $k$
     \end{itemize}
@@ -114,11 +121,11 @@
     \begin{figure}
         \centering
         \includegraphics[width=1.05\textwidth,trim=0 17 0 1.5cm,clip]{img/delta_eigen_1_10_1024.pdf}
-        \caption*{Monte Carlo $\Delta_k$ vs $k$ and $\Delta_k\cdot k^2$}
+        \caption*{\tiny Figure 8: Monte Carlo $\Delta_k$ vs $k$ and $\Delta_k\cdot k^2$ (p.11)}
     \end{figure}
 \end{frame}
 
-\begin{frame}{Combining results}
+\begin{frame}{Error Analysis}
     \begin{itemize}
         \item Empirical $\Delta_k$ consistently below theoretical estimate
         \item Gap due to neglected eigen-modes beyond top-$d$
@@ -127,18 +134,18 @@
 
     \begin{figure}
         \centering
-        \includegraphics[width=0.9\textwidth]{img/delta_border_1_10_1024.pdf}
-        \caption*{Theoretical (dashed) vs empirical (solid) $\Delta_k$}
+        \includegraphics[width=0.7\textwidth]{img/delta_border_1_10_1024.pdf}
+        \caption*{\tiny Theoretical (dashed) vs empirical (solid) $\Delta_k$}
     \end{figure}
 \end{frame}
 
-\begin{frame}{Theoretical vs. Empirical $\Delta_k$}
+\begin{frame}{Main Experiment: Theoretical vs. Empirical $\Delta_k$}
     \begin{figure}
         \centering
-        \includegraphics[width=1\textwidth]{img/delta_loss_1_10_1024.pdf}
+        \includegraphics[width=0.85\textwidth]{img/delta_loss_1_10_1024.pdf}
+        \caption*{\tiny Empirical and Theoretical $\Delta_k$}
     \end{figure}
 \end{frame}
-
 
 \begin{frame}{Practical Measurements}
     \begin{table}
@@ -184,23 +191,13 @@
 \end{frame}
 
 \begin{frame}{Results and Conclusions}
-    \begin{enumerate}
+    \begin{itemize}
         \item Identified dataset thresholds \(k^*\) for MNIST and Fashion-MNIST.
         \item Loss landscape stabilizes: additional data negligible beyond \(k^*\).
         \item Hessian-based bound provides a reliable upper-bound for \(\Delta_k\).
         \item Proposed a practical algorithm for \(\Delta\)-sufficient dataset sizing.
         \item Offers guidelines for dataset collection and early stopping.
-    \end{enumerate}
-\end{frame}
-
-\begin{frame}{Literature}
-    \begin{enumerate}
-        \item Wu \textit{et al.} (2017): loss landscapes vs dataset size
-        \item Sagun \textit{et al.} (2018): Hessian low effective rank
-        \item Li \textit{et al.} (2018): visualizing loss surfaces
-        \item Ghorbani \textit{et al.} (2019): eigenvalue density analysis
-        \item Bousquet \& Elisseeff (2002): stability and generalization bounds
-    \end{enumerate}
+    \end{itemize}
 \end{frame}
 
 \end{document}
