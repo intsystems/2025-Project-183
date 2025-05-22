@@ -181,14 +181,23 @@
     \end{block}
 \end{frame}
 
-\begin{frame}{Results and Conclusions}
+\begin{frame}{Summary}
+    \begin{block}{Results}
+        \begin{enumerate}
+            \item Loss landscape stabilizes.
+            \item Hessian-based bound provides a reliable upper-bound for \(\Delta_k\).
+            \item Proposed a practical algorithm for \(\Delta\)-sufficient dataset sizing.
+            \item Offers guidelines for dataset collection and early stopping.
+        \end{enumerate}
+    \end{block}
+
+    \begin{block}{Future work}
     \begin{enumerate}
-        \item Identified dataset thresholds \(k^*\) for MNIST and Fashion-MNIST.
-        \item Loss landscape stabilizes: additional data negligible beyond \(k^*\).
-        \item Hessian-based bound provides a reliable upper-bound for \(\Delta_k\).
-        \item Proposed a practical algorithm for \(\Delta\)-sufficient dataset sizing.
-        \item Offers guidelines for dataset collection and early stopping.
+        \item Test the method on additional architectures.
+        \item Evaluate the approach on other datasets.
+        \item Incorporate automatic selection of the optimal number of Hessian eigenvalues.
     \end{enumerate}
+    \end{block}
 \end{frame}
 
 \begin{frame}{Literature}
