@@ -24,8 +24,8 @@
 
 - [LinkReview](LINKREVIEW.md)
 - [Code](code)
-- [Paper](paper)
-- [Slides](slides)
+- [Paper](paper/main.pdf)
+- [Slides](slides/full/main.pdf)
 
 ## Abstract
   Understanding how a neural network’s loss landscape changes as we add more training data is important for efficient training.
